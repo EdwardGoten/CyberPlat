@@ -1,0 +1,49 @@
+/* Глобальные стили для всего приложения */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body {
+  font-family: "Roboto", "Arial", sans-serif;
+  background-color: #f0f0f0;
+  color: #333333;
+}
+
+/* Исправление для контейнеров */
+.MuiContainer-root {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+}
+
+/* Исправление для AppBar */
+.MuiAppBar-root {
+  width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* Исправление для контента */
+.MuiBox-root {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+

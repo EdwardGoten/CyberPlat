@@ -1,0 +1,61 @@
+// Моковые данные для новостей
+export const mockNews = [
+  {
+    id: 1,
+    title: "NAVI обыграли Vitality и вышли в финал IEM Katowice 2024",
+    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=300&auto=format&fit=crop",
+    date: "2024-02-10",
+    author: "HLTV.org Staff",
+    excerpt:
+      "Natus Vincere победили Team Vitality со счетом 2-1 в полуфинале IEM Katowice 2024 и вышли в гранд-финал турнира.",
+    url: "https://www.hltv.org/news/example1",
+  },
+  {
+    id: 2,
+    title: "FaZe Clan выиграли ESL Pro League Season 17",
+    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=300&auto=format&fit=crop",
+    date: "2024-01-15",
+    author: "HLTV.org Staff",
+    excerpt:
+      "FaZe Clan одержали победу над G2 Esports в финале ESL Pro League Season 17 со счетом 3-1 и стали чемпионами турнира.",
+    url: "https://www.hltv.org/news/example2",
+  },
+  {
+    id: 3,
+    title: "Объявлены участники BLAST Premier Spring Final 2024",
+    image: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=600&h=300&auto=format&fit=crop",
+    date: "2024-03-01",
+    author: "HLTV.org Staff",
+    excerpt:
+      "Организаторы BLAST Premier Spring Final 2024 анонсировали список из восьми команд, которые примут участие в турнире.",
+    url: "https://www.hltv.org/news/example3",
+  },
+  {
+    id: 4,
+    title: "Team Liquid представила новый состав по CS2",
+    image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=600&h=300&auto=format&fit=crop",
+    date: "2024-03-05",
+    author: "HLTV.org Staff",
+    excerpt:
+      "Североамериканская организация Team Liquid официально представила обновленный состав по CS2, в который вошли новые игроки.",
+    url: "https://www.hltv.org/news/example4",
+  },
+  {
+    id: 5,
+    title: "Valve анонсировала изменения в системе рейтинга для CS2",
+    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=300&auto=format&fit=crop",
+    date: "2024-03-10",
+    author: "HLTV.org Staff",
+    excerpt:
+      "Компания Valve объявила о предстоящих изменениях в системе рейтинга для CS2, которые вступят в силу в следующем обновлении.",
+    url: "https://www.hltv.org/news/example5",
+  },
+]
+
+// Функция для получения моковых новостей с имитацией задержки
+export async function getMockNews() {
+  // Имитируем задержку сервера
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return mockNews
+}
+

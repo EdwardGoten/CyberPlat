@@ -1,0 +1,22 @@
+{
+  "+7 705 318 7588": {
+    "phone": "+7 705 318 7588",
+    "password": "password123",
+    "fullName": "Тестовый Пользователь",
+    "nickname": "TestUser",
+    "country": "Казахстан",
+    "city": "Алматы",
+    "registeredAt": "2025-03-19T14:05:39.547Z",
+    "lastLogin": "2025-03-19T14:05:39.547Z"
+  },
+  "edwardgoten@gmail.com": {
+    "email": "edwardgoten@gmail.com",
+    "password": "Edgoten2003",
+    "fullName": "Эдуард Гольштейн",
+    "nickname": "genzoro",
+    "country": "Казахстан",
+    "city": "Усть-Каменогорск",
+    "registeredAt": "2025-03-20T15:14:03.253Z",
+    "lastLogin": "2025-03-20T16:28:18.302Z"
+  }
+}
