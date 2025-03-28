@@ -1,321 +1,261 @@
-import express from 'express';
-import bcrypt from 'bcrypt';
-import { pool } from '../database.js';
-import { getUserByEmail, registerUser, authenticateUser } from '../controllers/userController.js';
+import express from "express"
+import bcrypt from "bcrypt"
+import multer from "multer"
+import path from "path"
+import fs from "fs"
+import { v4 as uuidv4 } from "uuid"
+import { fileURLToPath } from "url"
+import { dirname } from "path"
+import { pool } from "../database.js"
 
-const router = express.Router();
+const router = express.Router()
 
-// Тестовый маршрут для проверки работы API пользователей
-router.get('/test', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API пользователей работает'
-  });
-});
+// Получаем текущую директорию
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
-// Регистрация нового пользователя
-router.post('/register', async (req, res) => {
+// Настройка хранилища для multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, "../../uploads/avatars")
+
+    // Создаем директорию, если она не существует
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
+
+    cb(null, uploadDir)
+  },
+  filename: (req, file, cb) => {
+    // Генерируем уникальное имя файла
+    const uniqueFilename = `${uuidv4()}${path.extname(file.originalname)}`
+    cb(null, uniqueFilename)
+  },
+})
+
+// Фильтр для проверки типа файла
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true)
+  } else {
+    cb(new Error("Недопустимый формат файла. Разрешены только JPEG, PNG, GIF и WebP."))
+  }
+}
+
+// Настройка multer
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+})
+
+// Регистрация пользователя
+router.post("/register", async (req, res) => {
   try {
-    console.log('Запрос на регистрацию:', req.body);
-    
-    const { email, password, fullName, nickname, country, city } = req.body;
-    
-    // Проверка обязательных полей
+    const { email, password, fullName, nickname, country, city } = req.body
+
+    // Проверяем, что все обязательные поля заполнены
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email и пароль обязательны'
-      });
+        message: "Email и пароль обязательны",
+      })
     }
-    
+
     // Проверяем, существует ли пользователь с таким email
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
+    const existingUser = await pool.query("SELECT * FROM users WHERE email = $1", [email])
+
+    if (existingUser.rows.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Пользователь с таким email уже существует'
-      });
+        message: "Пользователь с таким email уже существует",
+      })
     }
-    
-    // Регистрируем нового пользователя
-    const userId = await registerUser({
-      email,
-      password,
-      fullName,
-      nickname,
-      country,
-      city
-    });
-    
-    // Возвращаем данные пользователя для сохранения в localStorage
+
+    // Проверяем, существует ли пользователь с таким никнеймом
+    if (nickname) {
+      const existingNickname = await pool.query("SELECT * FROM users WHERE nickname = $1", [nickname])
+
+      if (existingNickname.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Пользователь с таким никнеймом уже существует",
+        })
+      }
+    }
+
+    // Хешируем пароль
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+
+    // Создаем нового пользователя
+    const newUser = await pool.query(
+      `INSERT INTO users (email, password, full_name, nickname, country, city)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING user_id, email, full_name, nickname, country, city, avatar, created_at`,
+      [email, hashedPassword, fullName, nickname, country, city],
+    )
+
+    // Формируем токен (в реальном приложении здесь должна быть генерация JWT)
+    const token = "fake-jwt-token-" + Math.random().toString(36).substring(2, 15)
+
     res.status(201).json({
       success: true,
-      message: 'Пользователь успешно зарегистрирован',
+      message: "Пользователь успешно зарегистрирован",
       user: {
-        userId,
-        email,
-        fullName,
-        nickname,
-        country,
-        city
-      }
-    });
+        userId: newUser.rows[0].user_id,
+        email: newUser.rows[0].email,
+        fullName: newUser.rows[0].full_name,
+        nickname: newUser.rows[0].nickname,
+        country: newUser.rows[0].country,
+        city: newUser.rows[0].city,
+        avatar: newUser.rows[0].avatar,
+        createdAt: newUser.rows[0].created_at,
+      },
+      token,
+    })
   } catch (error) {
-    console.error('❌ Ошибка при регистрации пользователя:', error);
+    console.error("❌ Ошибка при регистрации пользователя:", error)
     res.status(500).json({
       success: false,
-      message: 'Ошибка при регистрации пользователя',
-      error: error.message
-    });
+      message: "Ошибка при регистрации пользователя",
+      error: error.message,
+    })
   }
-});
+})
 
-// Аутентификация пользователя
-router.post('/login', async (req, res) => {
+// Вход пользователя
+router.post("/login", async (req, res) => {
   try {
-    console.log('Запрос на вход:', req.body);
-    
-    const { email, password } = req.body;
-    
-    // Проверка обязательных полей
+    const { email, password } = req.body
+
+    // Проверяем, что все обязательные поля заполнены
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email и пароль обязательны'
-      });
+        message: "Email и пароль обязательны",
+      })
     }
-    
-    const result = await authenticateUser(email, password);
-    
-    if (!result.success) {
+
+    // Ищем пользователя по email
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [email])
+
+    if (user.rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: result.message
-      });
+        message: "Неверный email или пароль",
+      })
     }
-    
-    // Возвращаем полные данные пользователя
+
+    // Проверяем пароль
+    const isMatch = await bcrypt.compare(password, user.rows[0].password)
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Неверный email или пароль",
+      })
+    }
+
+    // Формируем токен (в реальном приложении здесь должна быть генерация JWT)
+    const token = "fake-jwt-token-" + Math.random().toString(36).substring(2, 15)
+
     res.json({
       success: true,
-      message: 'Аутентификация успешна',
+      message: "Вход выполнен успешно",
       user: {
-        userId: result.user.userId,
-        email: result.user.email,
-        fullName: result.user.fullName,
-        nickname: result.user.nickname,
-        country: result.user.country,
-        city: result.user.city
-      }
-    });
+        userId: user.rows[0].user_id,
+        email: user.rows[0].email,
+        fullName: user.rows[0].full_name,
+        nickname: user.rows[0].nickname,
+        country: user.rows[0].country,
+        city: user.rows[0].city,
+        avatar: user.rows[0].avatar,
+        createdAt: user.rows[0].created_at,
+      },
+      token,
+    })
   } catch (error) {
-    console.error('❌ Ошибка при аутентификации пользователя:', error);
+    console.error("❌ Ошибка при входе пользователя:", error)
     res.status(500).json({
       success: false,
-      message: 'Ошибка при аутентификации пользователя',
-      error: error.message
-    });
+      message: "Ошибка при входе пользователя",
+      error: error.message,
+    })
   }
-});
+})
 
-// Получение информации о текущем пользователе
-router.get('/me', async (req, res) => {
+// Загрузка аватара пользователя
+router.post("/upload-avatar", upload.single("avatar"), async (req, res) => {
   try {
-    // В реальном приложении здесь должна быть проверка токена аутентификации
-    // и получение ID пользователя из токена
-    
-    // Для демонстрации получаем email из query параметров
-    const { email } = req.query;
-    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Файл не был загружен",
+      })
+    }
+
+    // Получаем email из запроса (в реальном приложении здесь должна быть проверка токена)
+    const { email } = req.body
+
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Email не указан'
-      });
+        message: "Email не указан",
+      })
     }
-    
-    // Получаем пользователя из базы данных
-    const user = await getUserByEmail(email);
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Пользователь не найден'
-      });
-    }
-    
-    // Возвращаем данные пользователя
-    res.json({
-      success: true,
-      message: 'Информация о пользователе получена',
-      profile: {
-        userId: user.user_id,
-        email: user.email,
-        username: user.full_name?.split(' ')[0] || '',
-        lastName: user.full_name?.split(' ')[1] || '',
-        nickname: user.nickname || '',
-        country: user.country || '',
-        city: user.city || '',
-        registeredAt: user.registered_at,
-        lastLogin: user.last_login
-      }
-    });
-  } catch (error) {
-    console.error('❌ Ошибка при получении информации о пользователе:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Ошибка при получении информации о пользователе',
-      error: error.message
-    });
-  }
-});
 
-// Обновление профиля пользователя
-router.post('/update', async (req, res) => {
-  try {
-    console.log('Запрос на обновление профиля:');
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
-    
-    const { email, username, lastName, nickname, country, city } = req.body;
-    
-    if (!email) {
-      console.error('Email не указан в запросе');
-      return res.status(400).json({
-        success: false,
-        message: 'Email не указан'
-      });
-    }
-    
     // Получаем пользователя из базы данных
-    const user = await getUserByEmail(email);
-    
-    if (!user) {
-      console.error('Пользователь не найден:', email);
-      return res.status(404).json({
-        success: false,
-        message: 'Пользователь не найден'
-      });
-    }
-    
-    // Обновляем данные пользователя в базе данных
-    const fullName = `${username || ''} ${lastName || ''}`.trim();
-    
-    console.log('Обновление данных пользователя:', {
-      email,
-      fullName,
-      nickname,
-      country,
-      city
-    });
-    
-    await pool.query(`
-      UPDATE users 
-      SET 
-        full_name = $1, 
-        nickname = $2, 
-        country = $3, 
-        city = $4
-      WHERE email = $5
-    `, [fullName, nickname, country, city, email]);
-    
-    console.log('Профиль успешно обновлен для пользователя:', email);
-    
-    // Возвращаем обновленные данные пользователя
-    res.json({
-      success: true,
-      message: 'Профиль успешно обновлен',
-      profile: {
-        userId: user.user_id,
-        email: user.email,
-        username: username || '',
-        lastName: lastName || '',
-        nickname: nickname || '',
-        country: country || '',
-        city: city || ''
-      }
-    });
-  } catch (error) {
-    console.error('❌ Ошибка при обновлении профиля:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Ошибка при обновлении профиля',
-      error: error.message
-    });
-  }
-});
+    const user = await getUserByEmail(email)
 
-// Изменение пароля пользователя
-router.put('/password', async (req, res) => {
-  try {
-    console.log('Запрос на изменение пароля:');
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
-    
-    const { email, currentPassword, newPassword } = req.body;
-    
-    if (!email) {
-      console.error('Email не указан в запросе');
-      return res.status(400).json({
-        success: false,
-        message: 'Email обязателен'
-      });
-    }
-    
-    if (!currentPassword || !newPassword) {
-      console.error('Пароли не указаны в запросе');
-      return res.status(400).json({
-        success: false,
-        message: 'Текущий пароль и новый пароль обязательны'
-      });
-    }
-    
-    // Получаем пользователя из базы данных
-    const user = await getUserByEmail(email);
-    
     if (!user) {
-      console.error('Пользователь не найден:', email);
       return res.status(404).json({
         success: false,
-        message: 'Пользователь не найден'
-      });
+        message: "Пользователь не найден",
+      })
     }
-    
-    // Проверяем текущий пароль
-    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
-    
-    if (!passwordMatch) {
-      console.error('Неверный текущий пароль для пользователя:', email);
-      return res.status(401).json({
-        success: false,
-        message: 'Неверный текущий пароль'
-      });
-    }
-    
-    // Хешируем новый пароль
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-    
-    // Обновляем пароль в базе данных
-    await pool.query(`
-      UPDATE users 
-      SET password = $1
+
+    const file = req.file
+
+    // Относительный путь для доступа к файлу через API
+    const avatarUrl = `/uploads/avatars/${file.filename}`
+
+    // Обновляем URL аватара в базе данных
+    await pool.query(
+      `
+      UPDATE users
+      SET avatar = $1
       WHERE email = $2
-    `, [hashedPassword, email]);
-    
-    console.log('Пароль успешно изменен для пользователя:', email);
-    
-    res.json({
+    `,
+      [avatarUrl, email],
+    )
+
+    console.log("Аватар успешно загружен для пользователя:", email)
+
+    res.status(200).json({
       success: true,
-      message: 'Пароль успешно изменен'
-    });
+      avatarUrl,
+      message: "Аватар успешно загружен",
+    })
   } catch (error) {
-    console.error('❌ Ошибка при изменении пароля:', error);
+    console.error("❌ Ошибка при загрузке аватара:", error)
     res.status(500).json({
       success: false,
-      message: 'Ошибка при изменении пароля',
-      error: error.message
-    });
+      message: "Произошла ошибка при загрузке аватара",
+      error: error.message,
+    })
   }
-});
+})
 
-export default router;
+// Вспомогательная функция для получения пользователя по email
+async function getUserByEmail(email) {
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [email])
+
+  return result.rows.length > 0 ? result.rows[0] : null
+}
+
+export default router

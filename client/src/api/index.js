@@ -158,7 +158,28 @@ export const logoutUser = () => {
 
 // Получение профиля пользователя
 export const getUserProfile = async () => {
-  return await fetchAPI('/users/profile', 'GET');
+  try {
+    // Получаем данные пользователя из localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (!user.email) {
+      return {
+        success: false,
+        message: 'Пользователь не авторизован'
+      };
+    }
+    
+    // Добавляем email в URL как query-параметр
+    const response = await fetchAPI(`/users/profile?email=${encodeURIComponent(user.email)}`);
+    
+    return response;
+  } catch (error) {
+    console.error('Ошибка при получении профиля:', error);
+    return {
+      success: false,
+      message: error.message || 'Ошибка при получении профиля'
+    };
+  }
 };
 
 // Обновление профиля пользователя
@@ -270,7 +291,7 @@ export const updateUserPassword = async (passwordData) => {
     
     console.log('Отправка запроса на обновление пароля:', {
       url: `${API_URL}/users/password`,
-      method: 'PUT',
+      method: 'POST', // Изменено с PUT на POST
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token || ''}`
@@ -279,7 +300,7 @@ export const updateUserPassword = async (passwordData) => {
     });
     
     const response = await fetch(`${API_URL}/users/password`, {
-      method: 'PUT',
+      method: 'POST', // Изменено с PUT на POST
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token || ''}`

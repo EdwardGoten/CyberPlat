@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Container,
   Box,
@@ -18,18 +18,21 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Badge,
+  IconButton,
 } from "@mui/material"
 import { useNavigate } from "react-router-dom"
 import EditIcon from "@mui/icons-material/Edit"
 import GroupsIcon from "@mui/icons-material/Groups"
 import LogoutIcon from "@mui/icons-material/Logout"
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos"
-import CloudUploadIcon from "@mui/icons-material/CloudUpload"
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera"
 import { getUserProfile, updateUserProfile, updateUserPassword } from "../api"
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from "../context/AuthContext.jsx"
+import TeamsList from "../components/teams/TeamsList"
 
 const Profile = () => {
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth()
 
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -45,14 +48,14 @@ const Profile = () => {
     email: "",
     oldPassword: "",
     newPassword: "",
-    confirmPassword: "", // Добавляем поле для подтверждения пароля
+    confirmPassword: "",
   })
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   })
-  const [passwordLoading, setPasswordLoading] = useState(false) // Отдельное состояние загрузки для смены пароля
+  const [passwordLoading, setPasswordLoading] = useState(false)
   const navigate = useNavigate()
 
   // Функция для проверки аутентификации и загрузки профиля
@@ -62,29 +65,30 @@ const Profile = () => {
       setError(null)
 
       // Проверяем, есть ли данные пользователя в localStorage
-      const userData = localStorage.getItem('user');
+      const userData = localStorage.getItem("user")
       if (!userData) {
         // Если пользователь не авторизован, перенаправляем на страницу входа
-        navigate('/login');
-        return;
+        navigate("/login")
+        return
       }
 
       // Парсим данные пользователя
-      const user = JSON.parse(userData);
-      
+      const user = JSON.parse(userData)
+
       // Если нет API для получения профиля, используем данные из localStorage
       if (!getUserProfile) {
         const userProfile = {
           userId: user.userId,
           email: user.email,
-          username: user.fullName?.split(' ')[0] || '',
-          lastName: user.fullName?.split(' ')[1] || '',
-          nickname: user.nickname || '',
-          country: user.country || '',
-          city: user.city || '',
-        };
-        
-        setProfile(userProfile);
+          username: user.fullName?.split(" ")[0] || "",
+          lastName: user.fullName?.split(" ")[1] || "",
+          nickname: user.nickname || "",
+          country: user.country || "",
+          city: user.city || "",
+          avatar: user.avatar || null,
+        }
+
+        setProfile(userProfile)
         setFormData({
           username: userProfile.username || "",
           lastName: userProfile.lastName || "",
@@ -95,14 +99,15 @@ const Profile = () => {
           oldPassword: "",
           newPassword: "",
           confirmPassword: "",
-        });
-        console.log("✅ Профиль загружен из localStorage:", userProfile);
-        setLoading(false);
-        return;
+        })
+
+        console.log("✅ Профиль загружен из localStorage:", userProfile)
+        setLoading(false)
+        return
       }
 
       // Получаем профиль пользователя через API
-      const data = await getUserProfile();
+      const data = await getUserProfile()
 
       if (data.success) {
         setProfile(data.profile)
@@ -117,27 +122,29 @@ const Profile = () => {
           newPassword: "",
           confirmPassword: "",
         })
+
         console.log("✅ Профиль успешно загружен:", data.profile)
       } else {
         throw new Error(data.message || "Ошибка загрузки профиля")
       }
     } catch (error) {
       console.error("❌ Ошибка при запросе профиля:", error)
-      
+
       // Если API не работает, используем данные из localStorage
       try {
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData = JSON.parse(localStorage.getItem("user") || "{}")
         const userProfile = {
           userId: userData.userId,
           email: userData.email,
-          username: userData.fullName?.split(' ')[0] || '',
-          lastName: userData.fullName?.split(' ')[1] || '',
-          nickname: userData.nickname || '',
-          country: userData.country || '',
-          city: userData.city || '',
-        };
-        
-        setProfile(userProfile);
+          username: userData.fullName?.split(" ")[0] || "",
+          lastName: userData.fullName?.split(" ")[1] || "",
+          nickname: userData.nickname || "",
+          country: userData.country || "",
+          city: userData.city || "",
+          avatar: userData.avatar || null,
+        }
+
+        setProfile(userProfile)
         setFormData({
           username: userProfile.username || "",
           lastName: userProfile.lastName || "",
@@ -148,8 +155,9 @@ const Profile = () => {
           oldPassword: "",
           newPassword: "",
           confirmPassword: "",
-        });
-        console.log("✅ Профиль загружен из localStorage (резервный вариант):", userProfile);
+        })
+
+        console.log("✅ Профиль загружен из localStorage (резервный вариант):", userProfile)
       } catch (localStorageError) {
         setError(error.message || "Произошла ошибка при загрузке профиля")
       }
@@ -172,246 +180,239 @@ const Profile = () => {
     }))
   }
 
-// Обработчик сохранения изменений
-// Обработчик сохранения изменений
-const handleSave = async () => {
-  try {
-    setLoading(true);
-    console.log("Отправка данных профиля:", {
-      email: formData.email,
-      username: formData.username,
-      lastName: formData.lastName,
-      nickname: formData.nickname,
-      country: formData.country,
-      city: formData.city,
-    });
-
-    // Проверяем, доступна ли функция API
-    if (typeof updateUserProfile !== 'function') {
-      console.warn("Функция updateUserProfile не определена, обновляем только localStorage");
-      
-      // Обновляем данные в localStorage
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      const updatedUserData = {
-        ...userData,
-        nickname: formData.nickname,
-        fullName: `${formData.username} ${formData.lastName}`.trim(),
-        country: formData.country,
-        city: formData.city,
-      };
-      localStorage.setItem('user', JSON.stringify(updatedUserData));
-      
-      // Обновляем локальное состояние
-      setProfile((prev) => ({
-        ...prev,
-        username: formData.username,
-        lastName: formData.lastName,
-        nickname: formData.nickname,
-        country: formData.country,
-        city: formData.city,
-      }));
-      
-      // Обновляем данные пользователя в контексте
-      updateUser({
-        fullName: `${formData.username} ${formData.lastName}`.trim(),
-        nickname: formData.nickname,
-        country: formData.country,
-        city: formData.city,
-      });
-      
-      setEditMode(false);
-      setSnackbar({
-        open: true,
-        message: "Профиль успешно обновлен",
-        severity: "success",
-      });
-      
-      setLoading(false);
-      return;
-    }
-
-    // Отправляем данные на сервер через API
-    const response = await updateUserProfile({
-      email: formData.email,
-      username: formData.username,
-      lastName: formData.lastName,
-      nickname: formData.nickname,
-      country: formData.country,
-      city: formData.city,
-    });
-
-    console.log("Ответ на запрос обновления профиля:", response);
-
-    if (response.success) {
-      // Обновляем локальное состояние
-      setProfile((prev) => ({
-        ...prev,
-        username: formData.username,
-        lastName: formData.lastName,
-        nickname: formData.nickname,
-        country: formData.country,
-        city: formData.city,
-      }));
-
-      // Обновляем данные пользователя в контексте
-      updateUser({
-        fullName: `${formData.username} ${formData.lastName}`.trim(),
-        nickname: formData.nickname,
-        country: formData.country,
-        city: formData.city,
-      });
-
-      setEditMode(false);
-      setSnackbar({
-        open: true,
-        message: "Профиль успешно обновлен",
-        severity: "success",
-      });
-    } else {
-      throw new Error(response.message || "Ошибка при обновлении профиля");
-    }
-  } catch (error) {
-    console.error("❌ Ошибка при обновлении профиля:", error);
-    
-    // Пробуем обновить только localStorage
+  // Обработчик сохранения изменений
+  const handleSave = async () => {
     try {
-      // Обновляем данные в localStorage
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      const updatedUserData = {
-        ...userData,
-        nickname: formData.nickname,
-        fullName: `${formData.username} ${formData.lastName}`.trim(),
-        country: formData.country,
-        city: formData.city,
-      };
-      localStorage.setItem('user', JSON.stringify(updatedUserData));
-      
-      // Обновляем локальное состояние
-      setProfile((prev) => ({
-        ...prev,
+      setLoading(true)
+      console.log("Отправка данных профиля:", {
+        email: formData.email,
         username: formData.username,
         lastName: formData.lastName,
         nickname: formData.nickname,
         country: formData.country,
         city: formData.city,
-      }));
-      
-      // Обновляем данные пользователя в контексте
-      updateUser({
-        fullName: `${formData.username} ${formData.lastName}`.trim(),
+      })
+
+      // Проверяем, доступна ли функция API
+      if (typeof updateUserProfile !== "function") {
+        console.warn("Функция updateUserProfile не определена, обновляем только localStorage")
+
+        // Обновляем данные в localStorage
+        const userData = JSON.parse(localStorage.getItem("user") || "{}")
+        const updatedUserData = {
+          ...userData,
+          nickname: formData.nickname,
+          fullName: `${formData.username} ${formData.lastName}`.trim(),
+          country: formData.country,
+          city: formData.city,
+        }
+        localStorage.setItem("user", JSON.stringify(updatedUserData))
+
+        // Обновляем локальное состояние
+        setProfile((prev) => ({
+          ...prev,
+          username: formData.username,
+          lastName: formData.lastName,
+          nickname: formData.nickname,
+          country: formData.country,
+          city: formData.city,
+        }))
+
+        // Обновляем данные пользователя в контексте
+        updateUser({
+          ...userData,
+          fullName: `${formData.username} ${formData.lastName}`.trim(),
+          nickname: formData.nickname,
+          country: formData.country,
+          city: formData.city,
+        })
+
+        setEditMode(false)
+        setSnackbar({
+          open: true,
+          message: "Профиль успешно обновлен",
+          severity: "success",
+        })
+
+        setLoading(false)
+        return
+      }
+
+      // Отправляем данные на сервер через API
+      const response = await updateUserProfile({
+        email: formData.email,
+        username: formData.username,
+        lastName: formData.lastName,
         nickname: formData.nickname,
         country: formData.country,
         city: formData.city,
-      });
-      
-      setEditMode(false);
-      setSnackbar({
-        open: true,
-        message: "Профиль обновлен локально (сервер недоступен)",
-        severity: "warning",
-      });
-    } catch (localStorageError) {
-      setSnackbar({
-        open: true,
-        message: error.message || "Ошибка при обновлении профиля",
-        severity: "error",
-      });
+      })
+
+      console.log("Ответ на запрос обновления профиля:", response)
+
+      if (response.success) {
+        // Обновляем локальное состояние
+        setProfile((prev) => ({
+          ...prev,
+          username: formData.username,
+          lastName: formData.lastName,
+          nickname: formData.nickname,
+          country: formData.country,
+          city: formData.city,
+        }))
+
+        // Обновляем данные пользователя в контексте
+        const userData = JSON.parse(localStorage.getItem("user") || "{}")
+        updateUser({
+          ...userData,
+          fullName: `${formData.username} ${formData.lastName}`.trim(),
+          nickname: formData.nickname,
+          country: formData.country,
+          city: formData.city,
+        })
+
+        setEditMode(false)
+        setSnackbar({
+          open: true,
+          message: "Профиль успешно обновлен",
+          severity: "success",
+        })
+      } else {
+        throw new Error(response.message || "Ошибка при обновлении профиля")
+      }
+    } catch (error) {
+      console.error("❌ Ошибка при обновлении профиля:", error)
+
+      // Пробуем обновить только localStorage
+      try {
+        // Обновляем данные в localStorage
+        const userData = JSON.parse(localStorage.getItem("user") || "{}")
+        const updatedUserData = {
+          ...userData,
+          nickname: formData.nickname,
+          fullName: `${formData.username} ${formData.lastName}`.trim(),
+          country: formData.country,
+          city: formData.city,
+        }
+        localStorage.setItem("user", JSON.stringify(updatedUserData))
+
+        // Обновляем локальное состояние
+        setProfile((prev) => ({
+          ...prev,
+          username: formData.username,
+          lastName: formData.lastName,
+          nickname: formData.nickname,
+          country: formData.country,
+          city: formData.city,
+        }))
+
+        // Обновляем данные пользователя в контексте
+        updateUser({
+          ...userData,
+          fullName: `${formData.username} ${formData.lastName}`.trim(),
+          nickname: formData.nickname,
+          country: formData.country,
+          city: formData.city,
+        })
+
+        setEditMode(false)
+        setSnackbar({
+          open: true,
+          message: "Профиль обновлен локально (сервер недоступен)",
+          severity: "warning",
+        })
+      } catch (localStorageError) {
+        setSnackbar({
+          open: true,
+          message: error.message || "Ошибка при обновлении профиля",
+          severity: "error",
+        })
+      }
+    } finally {
+      setLoading(false)
     }
-  } finally {
-    setLoading(false);
   }
-};
 
   // Обработчик изменения пароля
   const handlePasswordChange = async () => {
-  // Проверяем, что все поля заполнены
-  if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
-    setSnackbar({
-      open: true,
-      message: "Пожалуйста, заполните все поля для смены пароля",
-      severity: "error",
-    });
-    return;
-  }
-
-  // Проверяем, что новый пароль и подтверждение совпадают
-  if (formData.newPassword !== formData.confirmPassword) {
-    setSnackbar({
-      open: true,
-      message: "Новый пароль и подтверждение не совпадают",
-      severity: "error",
-    });
-    return;
-  }
-
-  try {
-    setPasswordLoading(true);
-    console.log("Отправка запроса на изменение пароля");
-
-    // Проверяем, доступна ли функция API
-    if (typeof updateUserPassword !== 'function') {
-      console.warn("Функция updateUserPassword не определена");
+    // Проверяем, что все поля заполнены
+    if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
       setSnackbar({
         open: true,
-        message: "Функция смены пароля временно недоступна",
-        severity: "warning",
-      });
-      setPasswordLoading(false);
-      return;
+        message: "Пожалуйста, заполните все поля для смены пароля",
+        severity: "error",
+      })
+      return
     }
 
-    // Отправляем запрос на изменение пароля
-    const response = await updateUserPassword({
-      currentPassword: formData.oldPassword,
-      newPassword: formData.newPassword,
-    });
-
-    console.log("Ответ на запрос изменения пароля:", response);
-
-    if (response.success) {
-      // Очищаем поля пароля
-      setFormData(prev => ({
-        ...prev,
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-
+    // Проверяем, что новый пароль и подтверждение совпадают
+    if (formData.newPassword !== formData.confirmPassword) {
       setSnackbar({
         open: true,
-        message: "Пароль успешно изменен",
-        severity: "success",
-      });
-    } else {
-      throw new Error(response.message || "Ошибка при изменении пароля");
+        message: "Новый пароль и подтверждение не совпадают",
+        severity: "error",
+      })
+      return
     }
-  } catch (error) {
-    console.error("❌ Ошибка при изменении пароля:", error);
-    setSnackbar({
-      open: true,
-      message: error.message || "Ошибка при изменении пароля",
-      severity: "error",
-    });
-  } finally {
-    setPasswordLoading(false);
-  }
-};
 
-  // Обработчик загрузки фото
-  const handleUploadPhoto = () => {
-    // Здесь будет логика загрузки фото
-    setSnackbar({
-      open: true,
-      message: "Функция загрузки фото будет доступна позже",
-      severity: "info",
-    })
+    try {
+      setPasswordLoading(true)
+      console.log("Отправка запроса на изменение пароля")
+
+      // Проверяем, доступна ли функция API
+      if (typeof updateUserPassword !== "function") {
+        console.warn("Функция updateUserPassword не определена")
+        setSnackbar({
+          open: true,
+          message: "Функция смены пароля временно недоступна",
+          severity: "warning",
+        })
+        setPasswordLoading(false)
+        return
+      }
+
+      // Отправляем запрос на изменение пароля
+      const response = await updateUserPassword({
+        currentPassword: formData.oldPassword,
+        newPassword: formData.newPassword,
+      })
+
+      console.log("Ответ на запрос изменения пароля:", response)
+
+      if (response.success) {
+        // Очищаем поля пароля
+        setFormData((prev) => ({
+          ...prev,
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }))
+
+        setSnackbar({
+          open: true,
+          message: "Пароль успешно изменен",
+          severity: "success",
+        })
+      } else {
+        throw new Error(response.message || "Ошибка при изменении пароля")
+      }
+    } catch (error) {
+      console.error("❌ Ошибка при изменении пароля:", error)
+      setSnackbar({
+        open: true,
+        message: error.message || "Ошибка при изменении пароля",
+        severity: "error",
+      })
+    } finally {
+      setPasswordLoading(false)
+    }
   }
 
   // Обработчик выхода из аккаунта
   const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+    logout()
+    navigate("/login")
+  }
 
   // Обработчик закрытия снэкбара
   const handleCloseSnackbar = () => {
@@ -438,7 +439,13 @@ const handleSave = async () => {
           <Grid item xs={12} md={4} lg={3}>
             <Paper sx={{ p: 3, mb: 3, borderRadius: "12px" }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Avatar src={profile?.avatar} alt={profile?.username} sx={{ width: 60, height: 60, mr: 2 }} />
+                <Avatar
+                  src={profile?.avatar}
+                  alt={profile?.username}
+                  sx={{ width: 60, height: 60, mr: 2 }}
+                >
+                  {!profile?.avatar && (profile?.username?.[0] || "U")}
+                </Avatar>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                     {profile?.nickname || "Пользователь"}
@@ -541,23 +548,21 @@ const handleSave = async () => {
           <Grid item xs={12} md={8} lg={9}>
             {activeSection === "profile" && (
               <Paper sx={{ p: 4, borderRadius: "12px" }}>
-                {/* Аватар и кнопка загрузки фото */}
+                {/* Аватар и сообщение о разработке */}
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
                   <Avatar
                     src={profile?.avatar}
                     alt={profile?.username}
-                    sx={{ width: 120, height: 120, mb: 2, bgcolor: "#222" }}
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      bgcolor: "#222",
+                    }}
                   >
                     {!profile?.avatar && (profile?.username?.[0] || "U")}
                   </Avatar>
-                  <Button
-                    variant="text"
-                    startIcon={<CloudUploadIcon />}
-                    onClick={handleUploadPhoto}
-                    sx={{ color: "#4169E1", textTransform: "uppercase" }}
-                  >
-                    Загрузить фото
-                  </Button>
+
+
                 </Box>
 
                 <Grid container spacing={3}>
@@ -699,8 +704,12 @@ const handleSave = async () => {
                           variant="outlined"
                           sx={{ mb: 2 }}
                           placeholder="Повторите новый пароль"
-                          error={formData.newPassword !== formData.confirmPassword && formData.confirmPassword !== ''}
-                          helperText={formData.newPassword !== formData.confirmPassword && formData.confirmPassword !== '' ? "Пароли не совпадают" : ""}
+                          error={formData.newPassword !== formData.confirmPassword && formData.confirmPassword !== ""}
+                          helperText={
+                            formData.newPassword !== formData.confirmPassword && formData.confirmPassword !== ""
+                              ? "Пароли не совпадают"
+                              : ""
+                          }
                         />
                       </Grid>
 
@@ -710,7 +719,14 @@ const handleSave = async () => {
                           <Button
                             variant="contained"
                             onClick={handlePasswordChange}
-                            disabled={loading || passwordLoading || !formData.oldPassword || !formData.newPassword || !formData.confirmPassword || formData.newPassword !== formData.confirmPassword}
+                            disabled={
+                              loading ||
+                              passwordLoading ||
+                              !formData.oldPassword ||
+                              !formData.newPassword ||
+                              !formData.confirmPassword ||
+                              formData.newPassword !== formData.confirmPassword
+                            }
                             sx={{ bgcolor: "#4169E1" }}
                           >
                             {passwordLoading ? <CircularProgress size={24} /> : "Изменить пароль"}
@@ -755,13 +771,8 @@ const handleSave = async () => {
 
             {activeSection === "teams" && (
               <Paper sx={{ p: 4, borderRadius: "12px" }}>
-                <Typography variant="h5" sx={{ mb: 3 }}>
-                  Мои команды
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  Раздел находится в разработке. Скоро здесь появится возможность управления командами.
-                </Typography>
-              </Paper>
+              <TeamsList />
+            </Paper>
             )}
           </Grid>
         </Grid>
