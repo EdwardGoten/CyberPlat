@@ -1,0 +1,183 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Профиль - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Информация о профиле</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    {% if user.player.avatar %}
+                        <img src="{{ user.player.avatar.url }}" alt="{{ user.player.nickname }}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <img src="/static/img/default-avatar.png" alt="{{ user.player.nickname }}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <h4>{{ user.player.nickname }}</h4>
+                {% if user.player.first_name or user.player.last_name %}
+                    <p>{{ user.player.first_name }} {{ user.player.last_name }}</p>
+                {% endif %}
+                {% if user.player.country or user.player.city %}
+                    <p>
+                        {% if user.player.country %}{{ user.player.country }}{% endif %}
+                        {% if user.player.country and user.player.city %}, {% endif %}
+                        {% if user.player.city %}{{ user.player.city }}{% endif %}
+                    </p>
+                {% endif %}
+                <p><strong>Steam ID:</strong> {{ user.player.steam_id|default:"Не указан" }}</p>
+                <p><strong>Команда:</strong> 
+                    {% if user.player.team %}
+                        <a href="{% url 'team_detail' user.player.team.pk %}">{{ user.player.team.name }}</a>
+                        {% if user.player.role == 'captain' %}
+                            <span class="badge bg-primary">Капитан</span>
+                        {% elif user.player.role == 'substitute' %}
+                            <span class="badge bg-secondary">Запасной</span>
+                        {% else %}
+                            <span class="badge bg-success">Основной</span>
+                        {% endif %}
+                    {% else %}
+                        Нет команды
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            {% if not user.player.team %}
+                <a href="{% url 'team_create' %}" class="btn btn-success w-100 mb-2">Создать команду</a>
+            {% endif %}
+            <a href="{% url 'invitations' %}" class="btn btn-primary w-100">Мои приглашения 
+                {% if user.player.invitations.count > 0 %}
+                    <span class="badge bg-light text-dark">{{ user.player.invitations.count }}</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Редактировать профиль</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="profile_form" value="1">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ player_form.first_name.id_for_label }}" class="form-label">Имя</label>
+                            {{ player_form.first_name }}
+                            {% if player_form.first_name.errors %}
+                                <div class="text-danger">{{ player_form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ player_form.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                            {{ player_form.last_name }}
+                            {% if player_form.last_name.errors %}
+                                <div class="text-danger">{{ player_form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ player_form.nickname.id_for_label }}" class="form-label">Никнейм</label>
+                        {{ player_form.nickname }}
+                        {% if player_form.nickname.errors %}
+                            <div class="text-danger">{{ player_form.nickname.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ player_form.country.id_for_label }}" class="form-label">Страна</label>
+                            {{ player_form.country }}
+                            {% if player_form.country.errors %}
+                                <div class="text-danger">{{ player_form.country.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ player_form.city.id_for_label }}" class="form-label">Город</label>
+                            {{ player_form.city }}
+                            {% if player_form.city.errors %}
+                                <div class="text-danger">{{ player_form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ player_form.steam_id.id_for_label }}" class="form-label">Steam ID</label>
+                        {{ player_form.steam_id }}
+                        {% if player_form.steam_id.errors %}
+                            <div class="text-danger">{{ player_form.steam_id.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                        {{ user_form.email }}
+                        {% if user_form.email.errors %}
+                            <div class="text-danger">{{ user_form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ player_form.avatar.id_for_label }}" class="form-label">Аватар</label>
+                        {{ player_form.avatar }}
+                        {% if player_form.avatar.errors %}
+                            <div class="text-danger">{{ player_form.avatar.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Рекомендуемый размер: 300x300 пикселей</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Изменить пароль</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="password_form" value="1">
+                    
+                    <div class="mb-3">
+                        <label for="{{ password_form.old_password.id_for_label }}" class="form-label">Текущий пароль</label>
+                        {{ password_form.old_password }}
+                        {% if password_form.old_password.errors %}
+                            <div class="text-danger">{{ password_form.old_password.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ password_form.new_password1.id_for_label }}" class="form-label">Новый пароль</label>
+                        {{ password_form.new_password1 }}
+                        {% if password_form.new_password1.errors %}
+                            <div class="text-danger">{{ password_form.new_password1.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{{ password_form.new_password1.help_text }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ password_form.new_password2.id_for_label }}" class="form-label">Подтверждение нового пароля</label>
+                        {{ password_form.new_password2 }}
+                        {% if password_form.new_password2.errors %}
+                            <div class="text-danger">{{ password_form.new_password2.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Изменить пароль</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

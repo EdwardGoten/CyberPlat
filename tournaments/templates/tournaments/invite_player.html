@@ -1,0 +1,23 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Пригласить игрока - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2>Пригласить игрока в команду {{ team.name }}</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="nickname" class="form-label">Никнейм игрока</label>
+                <input type="text" class="form-control" id="nickname" name="nickname" required>
+                <div class="form-text">Введите точный никнейм игрока, которого хотите пригласить.</div>
+            </div>
+            <button type="submit" class="btn btn-primary">Отправить приглашение</button>
+            <a href="{% url 'team_detail' team.pk %}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Приглашения в команды - CS2 Турниры{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Приглашения в команды</h1>
+
+{% if invitations %}
+    <div class="list-group mb-4">
+        {% for invitation in invitations %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Приглашение от команды {{ invitation.team.name }}</h5>
+                        <p class="mb-1">Капитан: {{ invitation.team.captain.nickname }}</p>
+                        <small class="text-muted">Отправлено: {{ invitation.created_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                    <div>
+                        <a href="{% url 'accept_invitation' invitation.pk %}" class="btn btn-success">Принять</a>
+                        <a href="{% url 'decline_invitation' invitation.pk %}" class="btn btn-danger">Отклонить</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        У вас нет активных приглашений в команды.
+    </div>
+{% endif %}
+
+<a href="{% url 'profile' %}" class="btn btn-secondary">Вернуться в профиль</a>
+{% endblock %}

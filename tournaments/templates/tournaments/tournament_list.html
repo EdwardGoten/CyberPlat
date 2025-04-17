@@ -1,0 +1,87 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Турниры - CS2 Турниры{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Турниры</h1>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" href="#upcoming" data-bs-toggle="tab">Предстоящие</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#ongoing" data-bs-toggle="tab">Текущие</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#completed" data-bs-toggle="tab">Завершенные</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="upcoming">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for tournament in tournaments %}
+                {% if tournament.status == 'upcoming' %}
+                    <div class="col">
+                        <div class="card h-100 tournament-card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ tournament.name }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ tournament.get_format_display }}</h6>
+                                <p class="card-text">{{ tournament.description|truncatewords:30 }}</p>
+                                <p><strong>Начало:</strong> {{ tournament.start_date|date:"d.m.Y H:i" }}</p>
+                                <p><strong>Команд:</strong> {{ tournament.teams.count }}</p>
+                                <p><strong>Призовой фонд:</strong> {{ tournament.prize_pool }} руб.</p>
+                                <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="ongoing">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for tournament in tournaments %}
+                {% if tournament.status == 'ongoing' %}
+                    <div class="col">
+                        <div class="card h-100 tournament-card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ tournament.name }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ tournament.get_format_display }}</h6>
+                                <p class="card-text">{{ tournament.description|truncatewords:30 }}</p>
+                                <p><strong>Начало:</strong> {{ tournament.start_date|date:"d.m.Y H:i" }}</p>
+                                <p><strong>Команд:</strong> {{ tournament.teams.count }}</p>
+                                <p><strong>Призовой фонд:</strong> {{ tournament.prize_pool }} руб.</p>
+                                <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="completed">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for tournament in tournaments %}
+                {% if tournament.status == 'completed' %}
+                    <div class="col">
+                        <div class="card h-100 tournament-card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ tournament.name }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ tournament.get_format_display }}</h6>
+                                <p class="card-text">{{ tournament.description|truncatewords:30 }}</p>
+                                <p><strong>Проведен:</strong> {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}</p>
+                                <p><strong>Команд:</strong> {{ tournament.teams.count }}</p>
+                                <p><strong>Призовой фонд:</strong> {{ tournament.prize_pool }} руб.</p>
+                                <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends 'tournaments/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+<link rel="stylesheet" href="{% static 'css/home.css' %}" />
+{% endblock %}
+
+{% block content %}
+<!-- Блок с новостями HLTV -->
+<section class="hltv-container mt-4">
+    <h2 class="section-title">НОВОСТИ CS2</h2>
+    
+    <div class="language-toggle">
+        <button class="active" onclick="toggleHLTVLanguage('en')">EN</button>
+        <button onclick="toggleHLTVLanguage('ru')">RU</button>
+    </div>
+    
+    {% if hltv_featured %}
+    <div class="hltv-featured">
+        {% if hltv_featured.image_url %}
+        <img src="{{ hltv_featured.image_url }}" alt="{{ hltv_featured.title }}" class="featured-image">
+        {% else %}
+        <img src="{% static 'img/default-news.jpg' %}" alt="{{ hltv_featured.title }}" class="featured-image">
+        {% endif %}
+        
+        <div class="hltv-featured-content">
+            <h3 class="hltv-featured-title hltv-lang-en">{{ hltv_featured.title }}</h3>
+            <h3 class="hltv-featured-title hltv-lang-ru" style="display: none;">{{ hltv_featured.title_ru }}</h3>
+            
+            <div class="hltv-featured-preview hltv-lang-en">
+                {{ hltv_featured.content|truncatechars:200 }}
+            </div>
+            <div class="hltv-featured-preview hltv-lang-ru" style="display: none;">
+                {{ hltv_featured.content_ru|truncatechars:200 }}
+            </div>
+            
+            <div class="hltv-news-meta">
+                <span class="hltv-news-time"><i class="far fa-clock"></i> {{ hltv_featured.time_ago }}</span>
+                <span class="hltv-news-comments"><i class="far fa-comment-alt"></i> {{ hltv_featured.comments_count }} комментариев</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if hltv_news %}
+    <div class="hltv-news-grid">
+        {% for news in hltv_news %}
+        <div class="hltv-news-card">
+            <div class="hltv-news-header">
+                <div class="hltv-news-flag-container">
+                    {% if news.country_code %}
+                    <img src="{% static 'img/flags/' %}{{ news.country_code }}.png" alt="{{ news.country_code }}" class="hltv-news-flag flag-img">
+                    {% endif %}
+                    <span class="hltv-news-country">{{ news.country_code|upper }}</span>
+                </div>
+                <span class="hltv-news-time"><i class="far fa-clock"></i> {{ news.time_ago }}</span>
+            </div>
+            
+            <div class="hltv-news-body">
+                <div class="hltv-news-title hltv-lang-en">{{ news.title }}</div>
+                <div class="hltv-news-title hltv-lang-ru" style="display: none;">{{ news.title_ru }}</div>
+                
+                <div class="hltv-news-preview hltv-lang-en">
+                    {{ news.content|truncatechars:120 }}
+                </div>
+                <div class="hltv-news-preview hltv-lang-ru" style="display: none;">
+                    {{ news.content_ru|truncatechars:120 }}
+                </div>
+                
+                <div class="hltv-news-meta">
+                    <a href="{{ news.source_url }}" target="_blank" class="hltv-news-source">HLTV.org</a>
+                    <span class="hltv-news-comments"><i class="far fa-comment-alt"></i> {{ news.comments_count }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <a href="{% url 'hltv_news' %}" class="hltv-news-more">БОЛЬШЕ НОВОСТЕЙ CS2</a>
+    {% else %}
+    <div class="empty-state">
+        <p>Для просмотра новостей CS2 необходимо выполнить миграции и запустить парсер HLTV.</p>
+        <a href="{% url 'hltv_news' %}" class="btn btn-primary">Перейти к новостям CS2</a>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Блок с турнирами -->
+<section class="mb-5">
+    <h2 class="section-title">Турниры</h2>
+    
+    <ul class="nav nav-tabs" id="tournamentsTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="true">Регистрация</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ongoing-tab" data-bs-toggle="tab" data-bs-target="#ongoing" type="button" role="tab" aria-controls="ongoing" aria-selected="false">Активные</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab" aria-controls="past" aria-selected="false">Прошедшие</button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="tournamentsTabContent">
+        <!-- Турниры с открытой регистрацией -->
+        <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% for tournament in upcoming_tournaments %}
+                <div class="col">
+                    <div class="card tournament-card h-100">
+                        <div class="position-relative">
+                            {% if tournament.image %}
+                                <img src="{{ tournament.image.url }}" class="card-img-top" alt="{{ tournament.name }}">
+                            {% else %}
+                                <img src="{% static 'img/default-tournament.jpg' %}" class="card-img-top" alt="{{ tournament.name }}">
+                            {% endif %}
+                            <span class="tournament-status bg-primary text-white">Регистрация</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ tournament.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> {{ tournament.start_date|date:"d.m.Y" }}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i> Команд: {{ tournament.teams.count }}/{{ tournament.max_teams }}
+                                </small>
+                            </p>
+                            <p class="card-text">{{ tournament.description|truncatechars:100 }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-sm btn-primary w-100">Подробнее</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Нет турниров с открытой регистрацией</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Активные турниры -->
+        <div class="tab-pane fade" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% for tournament in ongoing_tournaments %}
+                <div class="col">
+                    <div class="card tournament-card h-100">
+                        <div class="position-relative">
+                            {% if tournament.image %}
+                                <img src="{{ tournament.image.url }}" class="card-img-top" alt="{{ tournament.name }}">
+                            {% else %}
+                                <img src="{% static 'img/default-tournament.jpg' %}" class="card-img-top" alt="{{ tournament.name }}">
+                            {% endif %}
+                            <span class="tournament-status bg-success text-white">Активный</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ tournament.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i> Команд: {{ tournament.teams.count }}
+                                </small>
+                            </p>
+                            <p class="card-text">{{ tournament.description|truncatechars:100 }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-sm btn-primary w-100">Подробнее</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Нет активных турниров</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Прошедшие турниры -->
+        <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% for tournament in past_tournaments %}
+                <div class="col">
+                    <div class="card tournament-card h-100">
+                        <div class="position-relative">
+                            {% if tournament.image %}
+                                <img src="{{ tournament.image.url }}" class="card-img-top" alt="{{ tournament.name }}">
+                            {% else %}
+                                <img src="{% static 'img/default-tournament.jpg' %}" class="card-img-top" alt="{{ tournament.name }}">
+                            {% endif %}
+                            <span class="tournament-status bg-secondary text-white">Завершен</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ tournament.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-trophy me-1"></i> Победитель: 
+                                    {% if tournament.winner %}
+                                        {{ tournament.winner.name }}
+                                    {% else %}
+                                        Не определен
+                                    {% endif %}
+                                </small>
+                            </p>
+                            <p class="card-text">{{ tournament.description|truncatechars:100 }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-sm btn-primary w-100">Подробнее</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Нет завершенных турниров</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Социальные сети -->
+<section class="mb-5">
+    <h2 class="section-title">Мы в социальных сетях</h2>
+    
+    <div class="social-icons">
+        <a href="#" class="social-icon instagram" title="Instagram">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="#" class="social-icon telegram" title="Telegram">
+            <i class="fab fa-telegram-plane"></i>
+        </a>
+        <a href="#" class="social-icon discord" title="Discord">
+            <i class="fab fa-discord"></i>
+        </a>
+        <a href="#" class="social-icon vk" title="VK">
+            <i class="fab fa-vk"></i>
+        </a>
+        <a href="#" class="social-icon youtube" title="YouTube">
+            <i class="fab fa-youtube"></i>
+        </a>
+        <a href="#" class="social-icon tiktok" title="TikTok">
+            <i class="fab fa-tiktok"></i>
+        </a>
+    </div>
+</section>
+
+<!-- Сохраняем путь к дефолтному флагу в переменную JavaScript -->
+<script>
+    var defaultFlagPath = "{% static 'img/flags/default.png' %}";
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<script src="{% static 'js/swiper-init.js' %}"></script>
+<script>
+    // Устанавливаем обработчик ошибок для всех изображений флагов
+    document.addEventListener('DOMContentLoaded', function() {
+        var flagImages = document.querySelectorAll('.flag-img');
+        for (var i = 0; i < flagImages.length; i++) {
+            flagImages[i].addEventListener('error', function() {
+                this.src = defaultFlagPath;
+            });
+        }
+    });
+
+    function toggleHLTVLanguage(lang) {
+        // Скрываем все элементы с языковыми классами
+        var elements = document.querySelectorAll('.hltv-lang-en, .hltv-lang-ru');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.display = 'none';
+        }
+        
+        // Показываем элементы с выбранным языком
+        var langElements = document.querySelectorAll('.hltv-lang-' + lang);
+        for (var i = 0; i < langElements.length; i++) {
+            langElements[i].style.display = 'block';
+        }
+        
+        // Обновляем активную кнопку
+        var buttons = document.querySelectorAll('.language-toggle button');
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove('active');
+        }
+        
+        var activeButton = document.querySelector('.language-toggle button[onclick="toggleHLTVLanguage(\'' + lang + '\')"]');
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+</script>
+{% endblock %}

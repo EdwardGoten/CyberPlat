@@ -1,0 +1,182 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}{{ team.name }} - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h1>{{ team.name }}</h1>
+        {% if is_captain %}
+            <div>
+                <a href="{% url 'team_edit' team.pk %}" class="btn btn-primary">Редактировать команду</a>
+                <a href="{% url 'invite_player' team.pk %}" class="btn btn-success">Пригласить игрока</a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                {% if team.logo %}
+                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="img-fluid mb-3 rounded">
+                {% else %}
+                    <div class="bg-light p-5 text-center mb-3 rounded">
+                        <span class="text-muted">Нет логотипа</span>
+                    </div>
+                {% endif %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Информация о команде</h5>
+                        <p><strong>Дата создания:</strong> {{ team.created_at|date:"d.m.Y" }}</p>
+                        <p><strong>Капитан:</strong> 
+                            <a href="#" class="d-inline-flex align-items-center text-decoration-none">
+                                {% if team.captain.avatar %}
+                                    <img src="{{ team.captain.avatar.url }}" alt="{{ team.captain.nickname }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% else %}
+                                    <img src="/static/img/default-avatar.png" alt="{{ team.captain.nickname }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% endif %}
+                                {{ team.captain.nickname }}
+                            </a>
+                        </p>
+                        <p><strong>Игроков:</strong> <span class="badge bg-primary">{{ team.get_player_count }}/6</span></p>
+                    </div>
+                </div>
+                
+                {% if is_captain %}
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'team_delete' team.pk %}" class="btn btn-outline-danger">Удалить команду</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Основной состав</h3>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for player in main_players %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    {% if player.avatar %}
+                                        <img src="{{ player.avatar.url }}" alt="{{ player.nickname }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="/static/img/default-avatar.png" alt="{{ player.nickname }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="mb-0">{{ player.nickname }}</h5>
+                                        {% if player.role == 'captain' %}
+                                            <span class="badge bg-primary">Капитан</span>
+                                        {% endif %}
+                                        {% if player.first_name or player.last_name %}
+                                            <small class="text-muted">{{ player.first_name }} {{ player.last_name }}</small>
+                                        {% endif %}
+                                        {% if player.country or player.city %}
+                                            <small class="d-block text-muted">
+                                                {% if player.country %}{{ player.country }}{% endif %}
+                                                {% if player.country and player.city %}, {% endif %}
+                                                {% if player.city %}{{ player.city }}{% endif %}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if is_captain and player != team.captain %}
+                                    <div>
+                                        <a href="{% url 'transfer_captaincy' team.pk player.pk %}" class="btn btn-sm btn-outline-primary">Сделать капитаном</a>
+                                        <a href="{% url 'remove_player' team.pk player.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center py-4">
+                                <span class="text-muted">Нет основных игроков</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Запасные игроки</h3>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for player in substitute_players %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    {% if player.avatar %}
+                                        <img src="{{ player.avatar.url }}" alt="{{ player.nickname }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="/static/img/default-avatar.png" alt="{{ player.nickname }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="mb-0">{{ player.nickname }}</h5>
+                                        <span class="badge bg-secondary">Запасной</span>
+                                        {% if player.first_name or player.last_name %}
+                                            <small class="text-muted">{{ player.first_name }} {{ player.last_name }}</small>
+                                        {% endif %}
+                                        {% if player.country or player.city %}
+                                            <small class="d-block text-muted">
+                                                {% if player.country %}{{ player.country }}{% endif %}
+                                                {% if player.country and player.city %}, {% endif %}
+                                                {% if player.city %}{{ player.city }}{% endif %}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if is_captain %}
+                                    <div>
+                                        <a href="{% url 'transfer_captaincy' team.pk player.pk %}" class="btn btn-sm btn-outline-primary">Сделать капитаном</a>
+                                        <a href="{% url 'remove_player' team.pk player.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center py-4">
+                                <span class="text-muted">Нет запасных игроков</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Турниры</h3>
+                        {% if is_captain %}
+                            <a href="{% url 'tournament_list' %}" class="btn btn-sm btn-outline-primary">Найти турниры</a>
+                        {% endif %}
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for tournament in team.tournament_set.all %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <a href="{% url 'tournament_detail' tournament.pk %}" class="text-decoration-none">
+                                            <h5 class="mb-1">{{ tournament.name }}</h5>
+                                        </a>
+                                        <small class="text-muted">
+                                            {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-{% if tournament.status == 'upcoming' %}primary{% elif tournament.status == 'ongoing' %}success{% else %}secondary{% endif %}">
+                                        {{ tournament.get_status_display }}
+                                    </span>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center py-4">
+                                <span class="text-muted">Команда не участвует в турнирах</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between">
+    <a href="{% url 'team_list' %}" class="btn btn-secondary">Назад к списку команд</a>
+    
+    {% if user.is_authenticated and not user.player.team %}
+        <a href="{% url 'tournament_join' team.pk %}" class="btn btn-primary">Подать заявку на вступление</a>
+    {% endif %}
+</div>
+{% endblock %}

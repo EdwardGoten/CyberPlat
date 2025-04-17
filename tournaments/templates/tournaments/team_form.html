@@ -1,0 +1,40 @@
+echo '{% extends "tournaments/base.html" %}
+
+{% block title %}Создание команды - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2>Создание команды</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Название команды</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.logo.id_for_label }}" class="form-label">Логотип команды</label>
+                        {{ form.logo }}
+                        {% if form.logo.errors %}
+                            <div class="text-danger">{{ form.logo.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Необязательно. Рекомендуемый размер: 200x200 пикселей.</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Создать команду</button>
+                    <a href="{% url "team_list" %}" class="btn btn-secondary">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}' > tournaments/templates/tournaments/team_form.html

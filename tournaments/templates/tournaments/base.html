@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CyberPlat{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Подключение собственных стилей -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-gamepad me-2"></i>CyberPlat
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/tournaments/' in request.path %}active{% endif %}" href="{% url 'tournament_list' %}">Турниры</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/teams/' in request.path %}active{% endif %}" href="{% url 'team_list' %}">Команды</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if user.player.avatar %}
+                                    <img src="{{ user.player.avatar.url }}" alt="{{ user.player.nickname }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% else %}
+                                    <img src="/static/img/default-avatar.png" alt="{{ user.player.nickname }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% endif %}
+                                {% if user.player.nickname %}
+                                    {{ user.player.nickname }}
+                                {% else %}
+                                    {{ user.username }}
+                                {% endif %}
+                            </a>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">Мой профиль</a></li>
+                                {% if user.player.team %}
+                                    <li><a class="dropdown-item" href="{% url 'team_detail' user.player.team.pk %}">Моя команда</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'invitations' %}">Приглашения 
+                                    {% if user.player.invitations.count > 0 %}
+                                        <span class="badge bg-primary">{{ user.player.invitations.count }}</span>
+                                    {% endif %}
+                                </a></li>
+                                {% if user.is_staff %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">Выйти</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/login/' in request.path %}active{% endif %}" href="{% url 'login' %}">Войти</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/register/' in request.path %}active{% endif %}" href="{% url 'register' %}">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <div class="container mb-4">
+        <!-- Сообщения -->
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Блок контента -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Подвал сайта -->
+    <footer class="bg-dark text-white py-4 mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>CyberPlat</h5>
+                    <p>Платформа для организации и участия в турнирах по Counter-Strike 2</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Ссылки</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-white">Главная</a></li>
+                        <li><a href="{% url 'tournament_list' %}" class="text-white">Турниры</a></li>
+                        <li><a href="{% url 'team_list' %}" class="text-white">Команды</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Контакты</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> support@cyberplat.com</li>
+                        <li><i class="fab fa-discord me-2"></i> Discord: Cyberplat</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p class="mb-0">&copy; {% now "Y" %} CyberPlat. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Подключение собственных скриптов -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

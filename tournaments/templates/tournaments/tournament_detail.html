@@ -1,0 +1,101 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}{{ tournament.name }} - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h1>{{ tournament.name }}</h1>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <h3>Описание</h3>
+                <p>{{ tournament.description }}</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h4>Информация</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Статус:</strong> {{ tournament.get_status_display }}</li>
+                            <li class="list-group-item"><strong>Формат:</strong> {{ tournament.get_format_display }}</li>
+                            <li class="list-group-item"><strong>Начало:</strong> {{ tournament.start_date|date:"d.m.Y H:i" }}</li>
+                            <li class="list-group-item"><strong>Окончание:</strong> {{ tournament.end_date|date:"d.m.Y H:i" }}</li>
+                            <li class="list-group-item"><strong>Призовой фонд:</strong> {{ tournament.prize_pool }} руб.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h4>Действия</h4>
+                        {% if user.is_authenticated and user.player.team and tournament.status == 'upcoming' %}
+                            {% if user.player.team in tournament.teams.all %}
+                                <div class="alert alert-success">
+                                    Ваша команда уже участвует в этом турнире!
+                                </div>
+                            {% else %}
+                                <a href="{% url 'tournament_join' tournament.pk %}" class="btn btn-success w-100 mb-3">Присоединиться к турниру</a>
+                            {% endif %}
+                        {% elif not user.is_authenticated %}
+                            <div class="alert alert-info">
+                                <a href="{% url 'login' %}">Войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>, чтобы участвовать в турнире.
+                            </div>
+                        {% elif not user.player.team %}
+                            <div class="alert alert-warning">
+                                Вам нужно <a href="{% url 'team_create' %}">создать команду</a>, чтобы участвовать в турнире.
+                            </div>
+                        {% elif tournament.status != 'upcoming' %}
+                            <div class="alert alert-secondary">
+                                Регистрация на турнир закрыта.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <h3>Участники ({{ tournament.teams.count }})</h3>
+                <div class="list-group">
+                    {% for team in tournament.teams.all %}
+                        <a href="{% url 'team_detail' team.pk %}" class="list-group-item list-group-item-action">
+                            {{ team.name }}
+                        </a>
+                    {% empty %}
+                        <div class="list-group-item">Пока нет участников</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5">
+            <h3>Матчи</h3>
+            {% if matches %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for match in matches %}
+                        <div class="col">
+                            <div class="card match-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ match.team1.name }} vs {{ match.team2.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Дата:</strong> {{ match.match_date|date:"d.m.Y H:i" }}<br>
+                                        {% if match.completed %}
+                                            <strong>Результат:</strong> {{ match.team1_score }} : {{ match.team2_score }}
+                                        {% else %}
+                                            <span class="badge bg-warning">Предстоит</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Матчи еще не назначены.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<a href="{% url 'tournament_list' %}" class="btn btn-secondary">Назад к списку турниров</a>
+{% endblock %}

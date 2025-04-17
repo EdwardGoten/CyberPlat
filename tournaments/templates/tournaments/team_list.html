@@ -1,0 +1,38 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Команды - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Команды</h1>
+    {% if user.is_authenticated and not user.player.team %}
+        <a href="{% url 'team_create' %}" class="btn btn-success">Создать команду</a>
+    {% endif %}
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for team in teams %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ team.name }}</h5>
+                    {% if team.logo %}
+                        <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="team-logo mb-3">
+                    {% endif %}
+                    <p class="card-text">Игроков: {{ team.players.count }}</p>
+                    <a href="{% url 'team_detail' team.pk %}" class="btn btn-primary">Подробнее</a>
+                </div>
+                <div class="card-footer text-muted">
+                    Создана: {{ team.created_at|date:"d.m.Y" }}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Пока нет зарегистрированных команд.
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
