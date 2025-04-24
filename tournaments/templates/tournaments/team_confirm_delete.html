@@ -1,0 +1,20 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Удаление команды - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="card bg-base-200 shadow-xl max-w-lg mx-auto">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Удаление команды</h2>
+        <p class="mb-6">Вы уверены, что хотите удалить команду <strong>{{ team.name }}</strong>? Это действие нельзя отменить.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex flex-wrap gap-4 justify-end">
+                <a href="{% url 'team_detail' team.pk %}" class="btn btn-outline">Отмена</a>
+                <button type="submit" class="btn btn-error">Удалить команду</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

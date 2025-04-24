@@ -1,87 +1,75 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import PasswordChangeForm
-from .models import Player, Team, Tournament, Match
+from .models import Player, Team, Tournament, News, Match
 
-class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password2 = forms.CharField(label='Повторите пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField()
     
     class Meta:
         model = User
-        fields = ('username', 'email')
-        widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-        }
-        
-    def clean_password2(self):
-        cd = self.cleaned_data
-        if cd['password'] != cd['password2']:
-            raise forms.ValidationError('Пароли не совпадают.')
-        return cd['password2']
-
-class PlayerProfileForm(forms.ModelForm):
-    class Meta:
-        model = Player
-        fields = ('nickname', 'first_name', 'last_name', 'country', 'city', 'steam_id', 'avatar')
-        widgets = {
-            'nickname': forms.TextInput(attrs={'class': 'form-control'}),
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'country': forms.TextInput(attrs={'class': 'form-control'}),
-            'city': forms.TextInput(attrs={'class': 'form-control'}),
-            'steam_id': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-
-class UserEditForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ('email',)
-        widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-        }
-
-class CustomPasswordChangeForm(PasswordChangeForm):
+        fields = ['username', 'email', 'password1', 'password2']
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['old_password'].widget.attrs.update({'class': 'form-control'})
-        self.fields['new_password1'].widget.attrs.update({'class': 'form-control'})
-        self.fields['new_password2'].widget.attrs.update({'class': 'form-control'})
+        # Добавляем переводы подсказок для пароля
+        self.fields['password1'].help_text = 'Пароль должен содержать не менее 8 символов и не может быть слишком простым.'
+
+class PlayerForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ['nickname', 'first_name', 'last_name', 'country', 'city', 'role', 'avatar']
 
 class TeamForm(forms.ModelForm):
+    tag = forms.CharField(max_length=10, required=False, help_text="Короткое название команды (3-5 символов)")
+    
     class Meta:
         model = Team
-        fields = ('name', 'logo')
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'logo': forms.FileInput(attrs={'class': 'form-control'}),
-        }
+        fields = ['name', 'tag', 'logo', 'country']
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        tag = cleaned_data.get('tag')
+        
+        # Если тег не указан, создаем его из первых 3-5 букв названия команды
+        if name and not tag:
+            tag = name[:min(5, len(name))].upper()
+            cleaned_data['tag'] = tag
+            
+        return cleaned_data
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Если тег не указан, используем первые 3-5 букв названия команды
+        if not instance.tag and instance.name:
+            instance.tag = instance.name[:min(5, len(instance.name))].upper()
+            
+        if commit:
+            instance.save()
+            
+        return instance
 
 class TournamentForm(forms.ModelForm):
     class Meta:
         model = Tournament
-        fields = ('name', 'description', 'start_date', 'end_date', 'format', 'teams', 'prize_pool')
+        fields = ['name', 'description', 'start_date', 'end_date', 'location', 'prize_pool', 'image', 'format', 'status']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'format': forms.Select(attrs={'class': 'form-control'}),
-            'teams': forms.SelectMultiple(attrs={'class': 'form-control'}),
-            'prize_pool': forms.NumberInput(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
-class MatchForm(forms.ModelForm):
+class NewsForm(forms.ModelForm):
+    class Meta:
+        model = News
+        fields = ['title', 'content', 'image']
+
+class MatchResultForm(forms.ModelForm):
     class Meta:
         model = Match
-        fields = ('tournament', 'team1', 'team2', 'match_date', 'team1_score', 'team2_score', 'completed')
+        fields = ['team1_score', 'team2_score']
         widgets = {
-            'tournament': forms.Select(attrs={'class': 'form-control'}),
-            'team1': forms.Select(attrs={'class': 'form-control'}),
-            'team2': forms.Select(attrs={'class': 'form-control'}),
-            'match_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'team1_score': forms.NumberInput(attrs={'class': 'form-control'}),
-            'team2_score': forms.NumberInput(attrs={'class': 'form-control'}),
-            'completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'team1_score': forms.NumberInput(attrs={'min': 0, 'max': 100}),
+            'team2_score': forms.NumberInput(attrs={'min': 0, 'max': 100}),
         }

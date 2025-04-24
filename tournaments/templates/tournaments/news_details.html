@@ -1,0 +1,42 @@
+{% extends 'tournaments/base.html' %}
+
+{% block content %}
+<div class="card bg-base-200 shadow-xl mb-8">
+    <div class="card-body">
+        <h1 class="card-title text-3xl mb-4">{{ object.title }}</h1>
+        <div class="flex items-center text-sm opacity-70 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <time datetime="{{ object.created_at|date:'Y-m-d' }}">{{ object.created_at|date:"d F Y" }}</time>
+        </div>
+        
+        {% if object.image %}
+            <figure class="mb-6">
+                <img src="{{ object.image.url }}" alt="{{ object.title }}" class="rounded-lg w-full max-h-96 object-cover" />
+            </figure>
+        {% endif %}
+        
+        <div class="prose max-w-none">
+            {{ object.content|linebreaks }}
+        </div>
+        
+        {% if object.updated_at != object.created_at %}
+            <div class="text-sm opacity-70 mt-6 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Последнее обновление: {{ object.updated_at|date:"d F Y" }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="card-actions justify-start p-6 pt-0">
+        <a href="{% url 'news_list' %}" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Назад к новостям
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,36 +1,44 @@
 {% extends 'tournaments/base.html' %}
 
-{% block title %}Команды - CS2 Турниры{% endblock %}
+{% block title %}Команды - CyberPlat{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Команды</h1>
+<div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold mb-4 sm:mb-0">Команды</h1>
     {% if user.is_authenticated and not user.player.team %}
-        <a href="{% url 'team_create' %}" class="btn btn-success">Создать команду</a>
+        <a href="{% url 'team_create' %}" class="btn btn-success">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Создать команду
+        </a>
     {% endif %}
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for team in teams %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">{{ team.name }}</h5>
-                    {% if team.logo %}
-                        <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="team-logo mb-3">
-                    {% endif %}
-                    <p class="card-text">Игроков: {{ team.players.count }}</p>
+        <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+            <div class="card-body">
+                <h2 class="card-title">{{ team.name }}</h2>
+                {% if team.logo %}
+                    <figure class="px-4 pt-4">
+                        <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="w-24 h-24 object-contain mx-auto mb-4">
+                    </figure>
+                {% endif %}
+                <p>Игроков: <span class="badge badge-primary">{{ team.players.count }}</span></p>
+                <div class="card-actions justify-end mt-4">
                     <a href="{% url 'team_detail' team.pk %}" class="btn btn-primary">Подробнее</a>
                 </div>
-                <div class="card-footer text-muted">
-                    Создана: {{ team.created_at|date:"d.m.Y" }}
-                </div>
+            </div>
+            <div class="card-footer bg-base-300 px-4 py-3 text-sm opacity-70">
+                Создана: {{ team.created_at|date:"d.m.Y" }}
             </div>
         </div>
     {% empty %}
-        <div class="col-12">
+        <div class="col-span-full">
             <div class="alert alert-info">
-                Пока нет зарегистрированных команд.
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Пока нет зарегистрированных команд.</span>
             </div>
         </div>
     {% endfor %}

@@ -1,0 +1,44 @@
+{% extends 'tournaments/base.html' %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-8">
+    <h1 class="text-4xl font-bold mb-4 md:mb-0">Последние новости</h1>
+    {% if user.is_staff %}
+        <a href="{% url 'news_create' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Добавить новость
+        </a>
+    {% endif %}
+</div>
+
+{% if news_list %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for news_item in news_list %}
+            <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                {% if news_item.image %}
+                    <figure>
+                        <img src="{{ news_item.image.url }}" alt="{{ news_item.title }}" class="h-48 w-full object-cover" />
+                    </figure>
+                {% endif %}
+                <div class="card-body">
+                    <h2 class="card-title">{{ news_item.title }}</h2>
+                    <p>{{ news_item.content|truncatewords:30 }}</p>
+                    <div class="text-sm opacity-70 mt-2">
+                        <time datetime="{{ news_item.created_at|date:'Y-m-d' }}">{{ news_item.created_at|date:"d F Y" }}</time>
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        <a href="{% url 'news_detail' news_item.pk %}" class="btn btn-primary">Читать далее</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Нет доступных новостей.</span>
+    </div>
+{% endif %}
+{% endblock %}

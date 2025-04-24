@@ -1,0 +1,174 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Редактирование{% else %}Создание{% endif %} турнира - CyberPlat{% endblock %}
+
+{% block content %}
+<div class="card bg-base-200 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">{% if form.instance.pk %}Редактирование{% else %}Создание{% endif %} турнира</h2>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-control w-full mb-4">
+                <label class="label">
+                    <span class="label-text">Название турнира</span>
+                </label>
+                {{ form.name.errors }}
+                <input type="text" name="{{ form.name.html_name }}" id="{{ form.name.id_for_label }}" 
+                       value="{{ form.name.value|default:'' }}"
+                       class="input input-bordered w-full {% if form.name.errors %}input-error{% endif %}" required />
+                {% if form.name.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.name.errors }}</span>
+                    </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control w-full mb-4">
+                <label class="label">
+                    <span class="label-text">Описание</span>
+                </label>
+                {{ form.description.errors }}
+                <textarea name="{{ form.description.html_name }}" id="{{ form.description.id_for_label }}" 
+                          rows="5" class="textarea textarea-bordered w-full {% if form.description.errors %}textarea-error{% endif %}">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                    </label>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Дата начала</span>
+                    </label>
+                    {{ form.start_date.errors }}
+                    <input type="date" name="{{ form.start_date.html_name }}" id="{{ form.start_date.id_for_label }}" 
+                           value="{{ form.start_date.value|date:'Y-m-d'|default:'' }}"
+                           class="input input-bordered w-full {% if form.start_date.errors %}input-error{% endif %}" required />
+                    {% if form.start_date.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.start_date.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Дата окончания</span>
+                    </label>
+                    {{ form.end_date.errors }}
+                    <input type="date" name="{{ form.end_date.html_name }}" id="{{ form.end_date.id_for_label }}" 
+                           value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}"
+                           class="input input-bordered w-full {% if form.end_date.errors %}input-error{% endif %}" required />
+                    {% if form.end_date.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.end_date.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Местоположение</span>
+                    </label>
+                    {{ form.location.errors }}
+                    <input type="text" name="{{ form.location.html_name }}" id="{{ form.location.id_for_label }}" 
+                           value="{{ form.location.value|default:'' }}"
+                           class="input input-bordered w-full {% if form.location.errors %}input-error{% endif %}" />
+                    {% if form.location.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.location.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control w-full mb-4">
+                    <label class="label">
+                        <span class="label-text">Призовой фонд (тенге)</span>
+                    </label>
+                    {{ form.prize_pool.errors }}
+                    <input type="number" name="{{ form.prize_pool.html_name }}" id="{{ form.prize_pool.id_for_label }}" 
+                           value="{{ form.prize_pool.value|default:'' }}"
+                           class="input input-bordered w-full {% if form.prize_pool.errors %}input-error{% endif %}" />
+                    {% if form.prize_pool.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.prize_pool.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-control w-full mb-4">
+                <label class="label">
+                    <span class="label-text">Изображение турнира</span>
+                </label>
+                {{ form.image.errors }}
+                <input type="file" name="{{ form.image.html_name }}" id="{{ form.image.id_for_label }}" 
+                       class="file-input file-input-bordered w-full {% if form.image.errors %}file-input-error{% endif %}" />
+                {% if form.image.value %}
+                    <label class="label">
+                        <span class="label-text-alt">Текущее изображение: {{ form.image.value }}</span>
+                    </label>
+                {% endif %}
+                {% if form.image.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.image.errors }}</span>
+                    </label>
+                {% endif %}
+                <label class="label">
+                    <span class="label-text-alt">Рекомендуемый размер: 1200x400 пикселей</span>
+                </label>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Формат турнира</span>
+                    </label>
+                    {{ form.format.errors }}
+                    <select name="{{ form.format.html_name }}" id="{{ form.format.id_for_label }}" 
+                           class="select select-bordered w-full {% if form.format.errors %}select-error{% endif %}">
+                        <option value="single_elimination" {% if form.format.value == 'single_elimination' %}selected{% endif %}>Single Elimination</option>
+                        <option value="double_elimination" {% if form.format.value == 'double_elimination' %}selected{% endif %}>Double Elimination</option>
+                        <option value="round_robin" {% if form.format.value == 'round_robin' %}selected{% endif %}>Round Robin</option>
+                        <option value="swiss" {% if form.format.value == 'swiss' %}selected{% endif %}>Swiss System</option>
+                    </select>
+                    {% if form.format.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.format.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Статус</span>
+                    </label>
+                    {{ form.status.errors }}
+                    <select name="{{ form.status.html_name }}" id="{{ form.status.id_for_label }}" 
+                           class="select select-bordered w-full {% if form.status.errors %}select-error{% endif %}">
+                        <option value="upcoming" {% if form.status.value == 'upcoming' %}selected{% endif %}>Предстоящий</option>
+                        <option value="ongoing" {% if form.status.value == 'ongoing' %}selected{% endif %}>Текущий</option>
+                        <option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Завершенный</option>
+                    </select>
+                    {% if form.status.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.status.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-4 justify-end">
+                <a href="{% url 'tournament_list' %}" class="btn btn-outline">Отмена</a>
+                <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Сохранить{% else %}Создать турнир{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

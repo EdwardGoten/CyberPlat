@@ -1,173 +1,455 @@
+/* Custom styles for CS2 Tournament Platform with Bulma */
+
+/* Variables */
+:root {
+  --primary-color: #e94560;
+  --primary-dark: #d03d54;
+  --primary-light: #f06b83;
+  --secondary-color: #16213e;
+  --secondary-light: #2a3f6a;
+  --accent-color: #0f3460;
+  --success-color: #4ade80;
+  --danger-color: #f87171;
+  --warning-color: #facc15;
+  --info-color: #60a5fa;
+  --dark-color: #1a1a2e;
+  --light-color: #f5f5f5;
+}
+
+/* General styles */
 body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+  font-family: "Roboto", sans-serif;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
 
-.container {
-    flex: 1;
+main {
+  flex: 1;
 }
 
-.tournament-card {
-    transition: transform 0.3s;
+/* Navbar */
+.navbar {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.tournament-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+.brand-text {
+  font-weight: 700;
+  color: var(--primary-color) !important;
+  font-size: 1.5rem;
 }
 
+/* Hero section */
+.hero {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/static/img/cs2-background.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* Cards */
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-footer-item.button {
+  border-radius: 0;
+  border-top-width: 1px;
+  justify-content: center;
+  margin: 0;
+}
+
+.tournament-card .card-image img,
+.news-card .card-image img {
+  object-fit: cover;
+  height: 100%;
+}
+
+/* Buttons */
+.button.is-primary {
+  background-color: var(--primary-color);
+}
+
+.button.is-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.button.is-primary.is-outlined {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.button.is-primary.is-outlined:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.button.is-primary.is-light {
+  background-color: rgba(233, 69, 96, 0.1);
+  color: var(--primary-color);
+}
+
+.button.is-primary.is-light:hover {
+  background-color: rgba(233, 69, 96, 0.2);
+  color: var(--primary-color);
+}
+
+/* Footer */
+.footer {
+  padding: 3rem 1.5rem;
+}
+
+.footer ul {
+  list-style: none;
+  margin-left: 0;
+}
+
+.footer ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer a {
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* News content */
+.news-content {
+  line-height: 1.8;
+}
+
+.news-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+}
+
+/* Profile styles */
+.profile-header {
+  background-color: var(--dark-color);
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.avatar-container {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  border: 5px solid var(--primary-color);
+}
+
+.avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Team styles */
 .team-logo {
-    max-width: 100px;
-    max-height: 100px;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
 }
 
-.match-card {
-    border-left: 4px solid #007bff;
+.player-card {
+  text-align: center;
 }
 
-/* Стили для новостей в стиле QCF */
-.news-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 8px;
-    overflow: hidden;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.player-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 1rem;
 }
 
-.news-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+/* Tournament styles */
+.prize-pool {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
 }
 
-.news-card .card-img-top {
-    height: 200px;
-    object-fit: cover;
-}
+/* Media queries */
+@media screen and (max-width: 768px) {
+  .columns {
+    margin-left: 0;
+    margin-right: 0;
+  }
 
-.news-card .card-title {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #14213d;
-    margin-bottom: 0.5rem;
-}
+  .column {
+    padding: 0.75rem;
+  }
 
-.news-card .news-date {
-    font-size: 0.85rem;
-    color: #e63946;
-    margin-bottom: 0.75rem;
-}
+  .hero-body {
+    padding: 3rem 1.5rem;
+  }
 
-.news-card .card-text {
-    font-size: 0.9rem;
-    color: #555;
-    line-height: 1.5;
-}
-
-.news-card .btn-outline-danger {
-    color: #e63946;
-    border-color: #e63946;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.news-card .btn-outline-danger:hover {
-    background-color: #e63946;
-    color: white;
-}
-
-.section-title {
-    position: relative;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    text-align: center;
-    font-weight: 700;
-    color: #14213d;
-}
-
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 3px;
-    background-color: #e63946;
-}
-
-/* Стили для главного баннера */
-.hero-banner {
-    position: relative;
-    height: 500px;
-    overflow: hidden;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.hero-banner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: brightness(0.7);
-    transition: transform 0.5s ease;
-}
-
-.hero-banner:hover img {
-    transform: scale(1.05);
-}
-
-.hero-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 2rem;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
-    color: white;
-}
-
-.hero-content h1 {
+  .title.is-1 {
     font-size: 2.5rem;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    font-weight: 700;
+  }
 }
 
-.hero-content p {
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
-    max-width: 80%;
+/* Дополнительные стили для CS2 Турнирной Платформы с Tailwind CSS и DaisyUI */
+
+@layer base {
+  body {
+    font-family: "Roboto", sans-serif;
+  }
 }
 
-.hero-content .btn-danger {
-    background-color: #e63946;
-    border-color: #e63946;
-    font-weight: 600;
-    padding: 0.5rem 1.5rem;
-    transition: all 0.3s ease;
+/* Переопределение цветов DaisyUI */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 
-.hero-content .btn-danger:hover {
-    background-color: #c1121f;
-    border-color: #c1121f;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.btn-primary:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
 }
 
+.btn-outline.btn-primary {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-outline.btn-primary:hover {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+/* Анимации для карточек */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Стили для профиля */
+.avatar-container {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  border: 5px solid var(--primary-color);
+}
+
+.avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Стили для команд */
+.team-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.player-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Стили для турниров */
+.prize-pool {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* Стили для контента новостей */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+}
+
+/* Фон для героя */
+.hero-bg {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/static/img/cs2-background.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* Улучшение видимости текста на кнопках */
+.btn-outline.btn-primary,
+.btn-outline.btn-error {
+  color: white !important;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.btn-outline.btn-primary:hover,
+.btn-outline.btn-error:hover {
+  text-shadow: none;
+}
+
+/* Фиксированная высота для кнопок действий */
+.btn-sm {
+  min-height: 2.5rem;
+  height: auto !important;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Переопределение стилей для кнопок действий */
+.captain-btn {
+  background-color: var(--secondary-color) !important;
+  color: white !important;
+  border: none !important;
+  min-width: 160px;
+  transition: background-color 0.3s ease;
+}
+
+.captain-btn:hover {
+  background-color: var(--secondary-light) !important;
+}
+
+.delete-btn {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  min-width: 120px;
+  transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover {
+  background-color: var(--primary-dark) !important;
+}
+
+.find-btn {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+  border: none !important;
+  min-width: 140px;
+  transition: background-color 0.3s ease;
+}
+
+.find-btn:hover {
+  background-color: var(--secondary-light) !important;
+}
+
+/* Убедимся, что текст не обрезается */
+.btn svg + span,
+.btn svg + div {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Стили для бейджей */
+.badge-primary {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.badge-secondary {
+  background-color: var(--secondary-color) !important;
+  color: white !important;
+}
+
+.badge-success {
+  background-color: var(--success-color) !important;
+  color: var(--dark-color) !important;
+}
+
+/* Стили для ссылок */
+.link-primary {
+  color: var(--primary-color) !important;
+}
+
+.link-primary:hover {
+  color: var(--primary-dark) !important;
+}
+
+/* Стили для карточек */
+.card-title {
+  color: var(--primary-color);
+}
+
+/* Улучшенные стили для турнирной сетки */
+.tournament-bracket {
+  padding: 1rem 0;
+}
+
+.stage-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.stage-column h3 {
+  flex-shrink: 0;
+}
+
+.stage-column > div {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tournament-bracket .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1rem;
+  max-height: 150px;
+}
+
+.tournament-bracket .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Выравнивание матчей по стадиям */
+.stage-column:nth-child(1) .flex-col {
+  justify-content: space-around;
+}
+
+.stage-column:nth-child(2) .flex-col {
+  justify-content: space-around;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.stage-column:nth-child(3) .flex-col {
+  justify-content: center;
+}
+
+/* Адаптивность для турнирной сетки */
 @media (max-width: 768px) {
-    .hero-banner {
-        height: 350px;
-    }
-    
-    .hero-content h1 {
-        font-size: 1.8rem;
-    }
-    
-    .hero-content p {
-        font-size: 1rem;
-        max-width: 100%;
-    }
+  .tournament-bracket {
+    overflow-x: auto;
+  }
+
+  .stage-column {
+    min-height: 300px;
+  }
 }

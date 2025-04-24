@@ -3,181 +3,332 @@
 {% block title %}Профиль - CS2 Турниры{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3>Информация о профиле</h3>
-            </div>
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    {% if user.player.avatar %}
-                        <img src="{{ user.player.avatar.url }}" alt="{{ user.player.nickname }}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% else %}
-                        <img src="/static/img/default-avatar.png" alt="{{ user.player.nickname }}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% endif %}
-                </div>
-                <h4>{{ user.player.nickname }}</h4>
-                {% if user.player.first_name or user.player.last_name %}
-                    <p>{{ user.player.first_name }} {{ user.player.last_name }}</p>
-                {% endif %}
-                {% if user.player.country or user.player.city %}
-                    <p>
-                        {% if user.player.country %}{{ user.player.country }}{% endif %}
-                        {% if user.player.country and user.player.city %}, {% endif %}
-                        {% if user.player.city %}{{ user.player.city }}{% endif %}
-                    </p>
-                {% endif %}
-                <p><strong>Steam ID:</strong> {{ user.player.steam_id|default:"Не указан" }}</p>
-                <p><strong>Команда:</strong> 
-                    {% if user.player.team %}
-                        <a href="{% url 'team_detail' user.player.team.pk %}">{{ user.player.team.name }}</a>
-                        {% if user.player.role == 'captain' %}
-                            <span class="badge bg-primary">Капитан</span>
-                        {% elif user.player.role == 'substitute' %}
-                            <span class="badge bg-secondary">Запасной</span>
-                        {% else %}
-                            <span class="badge bg-success">Основной</span>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-24">
+    <div class="lg:col-span-1">
+        <div class="card bg-base-200 shadow-xl mb-4 sticky top-4">
+            <div class="card-body p-3">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="avatar">
+                        <div class="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                            {% if user.player.avatar %}
+                                <img src="{{ user.player.avatar.url }}" alt="{{ user.player.nickname }}">
+                            {% else %}
+                                <img src="/static/img/default-avatar.png" alt="{{ user.player.nickname }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold">{{ user.player.nickname }}</h3>
+                        {% if user.player.first_name or user.player.last_name %}
+                            <p class="text-sm">{{ user.player.first_name }} {{ user.player.last_name }}</p>
                         {% endif %}
-                    {% else %}
-                        Нет команды
+                        {% if user.player.country or user.player.city %}
+                            <p class="text-sm opacity-70">
+                                {% if user.player.country %}{{ user.player.country }}{% endif %}
+                                {% if user.player.country and user.player.city %}, {% endif %}
+                                {% if user.player.city %}{{ user.player.city }}{% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="divider my-0"></div>
+                
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div class="flex flex-col">
+                        <span class="font-bold">Steam ID:</span>
+                        <span>{{ user.player.steam_id|default:"Не указан" }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold">Команда:</span>
+                        <span>
+                            {% if user.player.teams.all %}
+                                {% with team=user.player.teams.first %}
+                                    <a href="{% url 'team_detail' team.pk %}" class="link link-primary">{{ team.name }}</a>
+                                    {% if team.captain == user.player %}
+                                        <span class="badge badge-primary badge-xs ml-1">Капитан</span>
+                                    {% elif user.player.role == 'substitute' %}
+                                        <span class="badge badge-secondary badge-xs ml-1">Запасной</span>
+                                    {% else %}
+                                        <span class="badge badge-success badge-xs ml-1">Основной</span>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                Нет команды
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-2 mt-2">
+                    {% if not user.player.teams.all %}
+                        <a href="{% url 'team_create' %}" class="btn btn-success h-10 w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Создать команду
+                        </a>
                     {% endif %}
-                </p>
+                    <a href="{% url 'invitations' %}" class="btn btn-primary h-10 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Приглашения
+                        {% if user.player.invitations.count > 0 %}
+                            <span class="badge badge-secondary badge-xs ml-1">{{ user.player.invitations.count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
             </div>
-        </div>
-        
-        <div class="mt-3">
-            {% if not user.player.team %}
-                <a href="{% url 'team_create' %}" class="btn btn-success w-100 mb-2">Создать команду</a>
-            {% endif %}
-            <a href="{% url 'invitations' %}" class="btn btn-primary w-100">Мои приглашения 
-                {% if user.player.invitations.count > 0 %}
-                    <span class="badge bg-light text-dark">{{ user.player.invitations.count }}</span>
-                {% endif %}
-            </a>
         </div>
     </div>
     
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3>Редактировать профиль</h3>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" name="profile_form" value="1">
+    <div class="lg:col-span-2 space-y-4">
+        <div class="tabs tabs-boxed mb-2">
+            <a class="tab tab-active" id="tab-profile" onclick="showTab('profile')">Редактировать профиль</a>
+            <a class="tab" id="tab-password" onclick="showTab('password')">Изменить пароль</a>
+        </div>
+        
+        <div id="profile-content" class="tab-content">
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-lg">Редактировать профиль</h2>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ player_form.first_name.id_for_label }}" class="form-label">Имя</label>
-                            {{ player_form.first_name }}
-                            {% if player_form.first_name.errors %}
-                                <div class="text-danger">{{ player_form.first_name.errors }}</div>
+                    <form method="post" enctype="multipart/form-data" class="mt-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="profile_form" value="1">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div class="form-control w-full">
+                                <label class="label py-1">
+                                    <span class="label-text">Имя</span>
+                                </label>
+                                {{ player_form.first_name.errors }}
+                                <input type="text" name="{{ player_form.first_name.html_name }}" id="{{ player_form.first_name.id_for_label }}" 
+                                       value="{{ player_form.first_name.value|default:'' }}"
+                                       class="input input-bordered h-10 w-full {% if player_form.first_name.errors %}input-error{% endif %}" />
+                                {% if player_form.first_name.errors %}
+                                    <label class="label py-0">
+                                        <span class="label-text-alt text-error">{{ player_form.first_name.errors }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control w-full">
+                                <label class="label py-1">
+                                    <span class="label-text">Фамилия</span>
+                                </label>
+                                {{ player_form.last_name.errors }}
+                                <input type="text" name="{{ player_form.last_name.html_name }}" id="{{ player_form.last_name.id_for_label }}" 
+                                       value="{{ player_form.last_name.value|default:'' }}"
+                                       class="input input-bordered h-10 w-full {% if player_form.last_name.errors %}input-error{% endif %}" />
+                                {% if player_form.last_name.errors %}
+                                    <label class="label py-0">
+                                        <span class="label-text-alt text-error">{{ player_form.last_name.errors }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-control w-full mb-3">
+                            <label class="label py-1">
+                                <span class="label-text">Никнейм</span>
+                            </label>
+                            {{ player_form.nickname.errors }}
+                            <input type="text" name="{{ player_form.nickname.html_name }}" id="{{ player_form.nickname.id_for_label }}" 
+                                   value="{{ player_form.nickname.value|default:'' }}"
+                                   class="input input-bordered h-10 w-full {% if player_form.nickname.errors %}input-error{% endif %}" />
+                            {% if player_form.nickname.errors %}
+                                <label class="label py-0">
+                                    <span class="label-text-alt text-error">{{ player_form.nickname.errors }}</span>
+                                </label>
                             {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label for="{{ player_form.last_name.id_for_label }}" class="form-label">Фамилия</label>
-                            {{ player_form.last_name }}
-                            {% if player_form.last_name.errors %}
-                                <div class="text-danger">{{ player_form.last_name.errors }}</div>
-                            {% endif %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div class="form-control w-full">
+                                <label class="label py-1">
+                                    <span class="label-text">Страна</span>
+                                </label>
+                                {{ player_form.country.errors }}
+                                <select name="{{ player_form.country.html_name }}" id="{{ player_form.country.id_for_label }}" 
+                                       class="select select-bordered h-10 w-full {% if player_form.country.errors %}select-error{% endif %}">
+                                    <option value="">Выберите страну</option>
+                                    <option value="US" {% if player_form.country.value == 'US' %}selected{% endif %}>United States</option>
+                                    <option value="UK" {% if player_form.country.value == 'UK' %}selected{% endif %}>United Kingdom</option>
+                                    <option value="RU" {% if player_form.country.value == 'RU' %}selected{% endif %}>Russia</option>
+                                    <option value="UA" {% if player_form.country.value == 'UA' %}selected{% endif %}>Ukraine</option>
+                                    <option value="DE" {% if player_form.country.value == 'DE' %}selected{% endif %}>Germany</option>
+                                    <option value="FR" {% if player_form.country.value == 'FR' %}selected{% endif %}>France</option>
+                                    <option value="BR" {% if player_form.country.value == 'BR' %}selected{% endif %}>Brazil</option>
+                                    <option value="SE" {% if player_form.country.value == 'SE' %}selected{% endif %}>Sweden</option>
+                                    <option value="DK" {% if player_form.country.value == 'DK' %}selected{% endif %}>Denmark</option>
+                                    <option value="FI" {% if player_form.country.value == 'FI' %}selected{% endif %}>Finland</option>
+                                    <option value="NO" {% if player_form.country.value == 'NO' %}selected{% endif %}>Norway</option>
+                                    <option value="CN" {% if player_form.country.value == 'CN' %}selected{% endif %}>China</option>
+                                    <option value="KZ" {% if player_form.country.value == 'KZ' %}selected{% endif %}>Kazakhstan</option>
+                                    <option value="EU" {% if player_form.country.value == 'EU' %}selected{% endif %}>Europe</option>
+                                    <option value="MN" {% if player_form.country.value == 'MN' %}selected{% endif %}>Mongolia</option>
+                                </select>
+                                {% if player_form.country.errors %}
+                                    <label class="label py-0">
+                                        <span class="label-text-alt text-error">{{ player_form.country.errors }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control w-full">
+                                <label class="label py-1">
+                                    <span class="label-text">Город</span>
+                                </label>
+                                {{ player_form.city.errors }}
+                                <input type="text" name="{{ player_form.city.html_name }}" id="{{ player_form.city.id_for_label }}" 
+                                       value="{{ player_form.city.value|default:'' }}"
+                                       class="input input-bordered h-10 w-full {% if player_form.city.errors %}input-error{% endif %}" />
+                                {% if player_form.city.errors %}
+                                    <label class="label py-0">
+                                        <span class="label-text-alt text-error">{{ player_form.city.errors }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ player_form.nickname.id_for_label }}" class="form-label">Никнейм</label>
-                        {{ player_form.nickname }}
-                        {% if player_form.nickname.errors %}
-                            <div class="text-danger">{{ player_form.nickname.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ player_form.country.id_for_label }}" class="form-label">Страна</label>
-                            {{ player_form.country }}
-                            {% if player_form.country.errors %}
-                                <div class="text-danger">{{ player_form.country.errors }}</div>
-                            {% endif %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div class="form-control w-full">
+                                <label class="label py-1">
+                                    <span class="label-text">Steam ID</span>
+                                </label>
+                                {{ player_form.steam_id.errors }}
+                                <input type="text" name="{{ player_form.steam_id.html_name }}" id="{{ player_form.steam_id.id_for_label }}" 
+                                       value="{{ player_form.steam_id.value|default:'' }}"
+                                       class="input input-bordered h-10 w-full {% if player_form.steam_id.errors %}input-error{% endif %}" />
+                                {% if player_form.steam_id.errors %}
+                                    <label class="label py-0">
+                                        <span class="label-text-alt text-error">{{ player_form.steam_id.errors }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control w-full">
+                                <label class="label py-1">
+                                    <span class="label-text">Email</span>
+                                </label>
+                                {{ user_form.email.errors }}
+                                <input type="email" name="{{ user_form.email.html_name }}" id="{{ user_form.email.id_for_label }}" 
+                                       value="{{ user_form.email.value|default:'' }}"
+                                       class="input input-bordered h-10 w-full {% if user_form.email.errors %}input-error{% endif %}" />
+                                {% if user_form.email.errors %}
+                                    <label class="label py-0">
+                                        <span class="label-text-alt text-error">{{ user_form.email.errors }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="{{ player_form.city.id_for_label }}" class="form-label">Город</label>
-                            {{ player_form.city }}
-                            {% if player_form.city.errors %}
-                                <div class="text-danger">{{ player_form.city.errors }}</div>
+                        
+                        <div class="form-control w-full mb-3">
+                            <label class="label py-1">
+                                <span class="label-text">Аватар</span>
+                            </label>
+                            {{ player_form.avatar.errors }}
+                            <input type="file" name="{{ player_form.avatar.html_name }}" id="{{ player_form.avatar.id_for_label }}" 
+                                   class="file-input file-input-bordered h-10 w-full {% if player_form.avatar.errors %}file-input-error{% endif %}" />
+                            {% if player_form.avatar.errors %}
+                                <label class="label py-0">
+                                    <span class="label-text-alt text-error">{{ player_form.avatar.errors }}</span>
+                                </label>
                             {% endif %}
+                            <label class="label py-0">
+                                <span class="label-text-alt text-xs">Рекомендуемый размер: 300x300 пикселей</span>
+                            </label>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ player_form.steam_id.id_for_label }}" class="form-label">Steam ID</label>
-                        {{ player_form.steam_id }}
-                        {% if player_form.steam_id.errors %}
-                            <div class="text-danger">{{ player_form.steam_id.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ user_form.email }}
-                        {% if user_form.email.errors %}
-                            <div class="text-danger">{{ user_form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ player_form.avatar.id_for_label }}" class="form-label">Аватар</label>
-                        {{ player_form.avatar }}
-                        {% if player_form.avatar.errors %}
-                            <div class="text-danger">{{ player_form.avatar.errors }}</div>
-                        {% endif %}
-                        <div class="form-text">Рекомендуемый размер: 300x300 пикселей</div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-                </form>
+                        
+                        <div class="form-control">
+                            <button type="submit" class="btn btn-primary h-10">Сохранить изменения</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
         
-        <div class="card">
-            <div class="card-header">
-                <h3>Изменить пароль</h3>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="password_form" value="1">
+        <div id="password-content" class="tab-content hidden">
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-lg">Изменить пароль</h2>
                     
-                    <div class="mb-3">
-                        <label for="{{ password_form.old_password.id_for_label }}" class="form-label">Текущий пароль</label>
-                        {{ password_form.old_password }}
-                        {% if password_form.old_password.errors %}
-                            <div class="text-danger">{{ password_form.old_password.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ password_form.new_password1.id_for_label }}" class="form-label">Новый пароль</label>
-                        {{ password_form.new_password1 }}
-                        {% if password_form.new_password1.errors %}
-                            <div class="text-danger">{{ password_form.new_password1.errors }}</div>
-                        {% endif %}
-                        <div class="form-text">{{ password_form.new_password1.help_text }}</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ password_form.new_password2.id_for_label }}" class="form-label">Подтверждение нового пароля</label>
-                        {{ password_form.new_password2 }}
-                        {% if password_form.new_password2.errors %}
-                            <div class="text-danger">{{ password_form.new_password2.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Изменить пароль</button>
-                </form>
+                    <form method="post" class="mt-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="password_form" value="1">
+                        
+                        <div class="form-control w-full mb-3">
+                            <label class="label py-1">
+                                <span class="label-text">Текущий пароль</span>
+                            </label>
+                            {{ password_form.old_password.errors }}
+                            <input type="password" name="{{ password_form.old_password.html_name }}" id="{{ password_form.old_password.id_for_label }}" 
+                                   class="input input-bordered h-10 w-full {% if password_form.old_password.errors %}input-error{% endif %}" />
+                            {% if password_form.old_password.errors %}
+                                <label class="label py-0">
+                                    <span class="label-text-alt text-error">{{ password_form.old_password.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control w-full mb-3">
+                            <label class="label py-1">
+                                <span class="label-text">Новый пароль</span>
+                            </label>
+                            {{ password_form.new_password1.errors }}
+                            <input type="password" name="{{ password_form.new_password1.html_name }}" id="{{ password_form.new_password1.id_for_label }}" 
+                                   class="input input-bordered h-10 w-full {% if password_form.new_password1.errors %}input-error{% endif %}" />
+                            {% if password_form.new_password1.errors %}
+                                <label class="label py-0">
+                                    <span class="label-text-alt text-error">{{ password_form.new_password1.errors }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label py-0">
+                                <span class="label-text-alt text-xs">Пароль должен содержать не менее 8 символов и не может быть слишком простым.</span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-control w-full mb-3">
+                            <label class="label py-1">
+                                <span class="label-text">Подтверждение нового пароля</span>
+                            </label>
+                            {{ password_form.new_password2.errors }}
+                            <input type="password" name="{{ password_form.new_password2.html_name }}" id="{{ password_form.new_password2.id_for_label }}" 
+                                   class="input input-bordered h-10 w-full {% if password_form.new_password2.errors %}input-error{% endif %}" />
+                            {% if password_form.new_password2.errors %}
+                                <label class="label py-0">
+                                    <span class="label-text-alt text-error">{{ password_form.new_password2.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <button type="submit" class="btn btn-primary h-10">Изменить пароль</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function showTab(tabName) {
+        // Скрыть все контенты вкладок
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Показать выбранный контент
+        document.getElementById(tabName + '-content').classList.remove('hidden');
+        
+        // Обновить активную вкладку
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('tab-active');
+        });
+        document.getElementById('tab-' + tabName).classList.add('tab-active');
+    }
+</script>
 {% endblock %}

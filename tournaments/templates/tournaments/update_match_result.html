@@ -1,0 +1,89 @@
+{% extends 'tournaments/base.html' %}
+
+{% block title %}Обновление результата матча - CyberPlat{% endblock %}
+
+{% block content %}
+<div class="card bg-base-200 shadow-xl max-w-lg mx-auto">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">Обновление результата матча</h2>
+        
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center space-x-2">
+                    {% if match.team1 %}
+                        {% if match.team1.logo %}
+                            <div class="avatar">
+                                <div class="w-8 h-8 rounded-full">
+                                    <img src="{{ match.team1.logo.url }}" alt="{{ match.team1.name }}">
+                                </div>
+                            </div>
+                        {% endif %}
+                        <span class="font-bold">{{ match.team1.name }}</span>
+                    {% else %}
+                        <span class="opacity-50">TBD</span>
+                    {% endif %}
+                </div>
+                <span class="text-xl">vs</span>
+                <div class="flex items-center space-x-2">
+                    {% if match.team2 %}
+                        <span class="font-bold">{{ match.team2.name }}</span>
+                        {% if match.team2.logo %}
+                            <div class="avatar">
+                                <div class="w-8 h-8 rounded-full">
+                                    <img src="{{ match.team2.logo.url }}" alt="{{ match.team2.name }}">
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <span class="opacity-50">TBD</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="text-sm opacity-70 text-center">
+                {{ match.match_date|date:"d.m.Y H:i" }}
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Счет {{ match.team1.name }}</span>
+                    </label>
+                    {{ form.team1_score.errors }}
+                    <input type="number" name="{{ form.team1_score.html_name }}" id="{{ form.team1_score.id_for_label }}" 
+                           value="{{ form.team1_score.value|default:0 }}" min="0" max="100"
+                           class="input input-bordered w-full {% if form.team1_score.errors %}input-error{% endif %}" />
+                    {% if form.team1_score.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.team1_score.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Счет {{ match.team2.name }}</span>
+                    </label>
+                    {{ form.team2_score.errors }}
+                    <input type="number" name="{{ form.team2_score.html_name }}" id="{{ form.team2_score.id_for_label }}" 
+                           value="{{ form.team2_score.value|default:0 }}" min="0" max="100"
+                           class="input input-bordered w-full {% if form.team2_score.errors %}input-error{% endif %}" />
+                    {% if form.team2_score.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.team2_score.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-4 justify-end">
+                <a href="{% url 'tournament_detail' tournament.pk %}?tab=bracket" class="btn btn-outline">Отмена</a>
+                <button type="submit" class="btn btn-primary">Сохранить результат</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

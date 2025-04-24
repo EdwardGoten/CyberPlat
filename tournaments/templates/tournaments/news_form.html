@@ -1,0 +1,63 @@
+{% extends 'tournaments/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card bg-base-200 shadow-xl">
+    <div class="card-body">
+        <h1 class="card-title text-3xl mb-6">{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} новость</h1>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Заголовок</span>
+                </label>
+                {{ form.title.errors }}
+                <input type="text" id="{{ form.title.id_for_label }}" name="{{ form.title.html_name }}" value="{{ form.title.value|default:'' }}" class="input input-bordered w-full {% if form.title.errors %}input-error{% endif %}" />
+                {% if form.title.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.title.errors }}</span>
+                    </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Содержание</span>
+                </label>
+                {{ form.content.errors }}
+                <textarea id="{{ form.content.id_for_label }}" name="{{ form.content.html_name }}" rows="10" class="textarea textarea-bordered w-full h-64 {% if form.content.errors %}textarea-error{% endif %}">{{ form.content.value|default:'' }}</textarea>
+                {% if form.content.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.content.errors }}</span>
+                    </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Изображение</span>
+                </label>
+                {{ form.image.errors }}
+                <input type="file" id="{{ form.image.id_for_label }}" name="{{ form.image.html_name }}" class="file-input file-input-bordered w-full {% if form.image.errors %}file-input-error{% endif %}" />
+                {% if form.image.value %}
+                    <label class="label">
+                        <span class="label-text-alt">Текущее изображение: {{ form.image.value }}</span>
+                    </label>
+                {% endif %}
+                {% if form.image.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.image.errors }}</span>
+                    </label>
+                {% endif %}
+            </div>
+            
+            <div class="flex flex-wrap gap-4 mt-8">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'news_list' %}" class="btn btn-outline">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

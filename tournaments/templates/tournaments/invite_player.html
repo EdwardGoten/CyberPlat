@@ -3,20 +3,36 @@
 {% block title %}Пригласить игрока - CS2 Турниры{% endblock %}
 
 {% block content %}
-<div class="card mb-4">
-    <div class="card-header">
-        <h2>Пригласить игрока в команду {{ team.name }}</h2>
-    </div>
+<div class="card bg-base-200 shadow-xl max-w-2xl mx-auto mb-8">
     <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">Пригласить игрока в команду {{ team.name }}</h2>
+        
+        <div class="alert alert-info mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Вы также можете найти игроков на <a href="{% url 'player_list' %}" class="link link-primary">странице игроков</a> и пригласить их напрямую.</span>
+        </div>
+        
         <form method="post">
             {% csrf_token %}
-            <div class="mb-3">
-                <label for="nickname" class="form-label">Никнейм игрока</label>
-                <input type="text" class="form-control" id="nickname" name="nickname" required>
-                <div class="form-text">Введите точный никнейм игрока, которого хотите пригласить.</div>
+            <div class="form-control w-full mb-6">
+                <label class="label">
+                    <span class="label-text">Никнейм игрока</span>
+                </label>
+                <input type="text" id="nickname" name="nickname" required class="input input-bordered w-full" />
+                <label class="label">
+                    <span class="label-text-alt">Введите точный никнейм игрока, которого хотите пригласить.</span>
+                </label>
             </div>
-            <button type="submit" class="btn btn-primary">Отправить приглашение</button>
-            <a href="{% url 'team_detail' team.pk %}" class="btn btn-secondary">Отмена</a>
+            
+            <div class="card-actions justify-end">
+                <a href="{% url 'team_detail' team.pk %}" class="btn btn-outline">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Отправить приглашение
+                </button>
+            </div>
         </form>
     </div>
 </div>
