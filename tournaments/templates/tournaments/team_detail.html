@@ -9,7 +9,7 @@
             <h1 class="text-3xl font-bold">{{ team.name }}</h1>
             {% if is_captain %}
                 <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
-                    <a href="{% url 'team_edit' team.pk %}" class="btn btn-primary btn-sm md:btn-md">
+                    <a href="{% url 'team_update' team.pk %}" class="btn btn-primary btn-sm md:btn-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
@@ -39,27 +39,31 @@
                     <div class="card-body">
                         <h2 class="card-title">Информация о команде</h2>
                         <div class="space-y-2">
-                            <p><span class="font-bold">Дата создания:</span> {{ team.created_at|date:"d.m.Y" }}</p>
+                            <p><span class="font-bold">Дата создания:</span> {% if team.created_at %}{{ team.created_at|date:"d.m.Y" }}{% else %}Не указана{% endif %}</p>
                             <p class="flex items-center">
                                 <span class="font-bold mr-2">Капитан:</span> 
-                                <a href="#" class="flex items-center link link-hover">
-                                    {% if team.captain.avatar %}
-                                        <div class="avatar mr-2">
-                                            <div class="w-8 rounded-full">
-                                                <img src="{{ team.captain.avatar.url }}" alt="{{ team.captain.nickname }}">
+                                {% if team.captain %}
+                                    <a href="#" class="flex items-center link link-hover">
+                                        {% if team.captain.avatar %}
+                                            <div class="avatar mr-2">
+                                                <div class="w-8 rounded-full">
+                                                    <img src="{{ team.captain.avatar.url }}" alt="{{ team.captain.nickname }}">
+                                                </div>
                                             </div>
-                                        </div>
-                                    {% else %}
-                                        <div class="avatar mr-2">
-                                            <div class="w-8 rounded-full">
-                                                <img src="/static/img/default-avatar.png" alt="{{ team.captain.nickname }}">
+                                        {% else %}
+                                            <div class="avatar mr-2">
+                                                <div class="w-8 rounded-full">
+                                                    <img src="/static/img/default-avatar.png" alt="{{ team.captain.nickname }}">
+                                                </div>
                                             </div>
-                                        </div>
-                                    {% endif %}
-                                    {{ team.captain.nickname }}
-                                </a>
+                                        {% endif %}
+                                        {{ team.captain.nickname }}
+                                    </a>
+                                {% else %}
+                                    <span class="opacity-70">Не назначен</span>
+                                {% endif %}
                             </p>
-                            <p><span class="font-bold">Игроков:</span> <span class="badge badge-primary">{{ team.get_player_count }}/6</span></p>
+                            <p><span class="font-bold">Игроков:</span> <span class="badge badge-primary">{{ team.players.count }}/6</span></p>
                         </div>
                     </div>
                 </div>
@@ -120,13 +124,13 @@
                                     </div>
                                     {% if is_captain and player != team.captain %}
                                         <div class="flex flex-wrap gap-2">
-                                            <a href="{% url 'transfer_captaincy' team.pk player.pk %}" class="btn btn-sm captain-btn">
+                                            <a href="{% url 'transfer_captaincy' team.pk player.pk %}" class="btn btn-sm">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                                 </svg>
                                                 Сделать капитаном
                                             </a>
-                                            <a href="{% url 'remove_player' team.pk player.pk %}" class="btn btn-sm delete-btn">
+                                            <a href="{% url 'remove_player' team.pk player.pk %}" class="btn btn-sm btn-error">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -187,13 +191,13 @@
                                     </div>
                                     {% if is_captain %}
                                         <div class="flex flex-wrap gap-2">
-                                            <a href="{% url 'transfer_captaincy' team.pk player.pk %}" class="btn btn-sm captain-btn">
+                                            <a href="{% url 'transfer_captaincy' team.pk player.pk %}" class="btn btn-sm">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                                 </svg>
                                                 Сделать капитаном
                                             </a>
-                                            <a href="{% url 'remove_player' team.pk player.pk %}" class="btn btn-sm delete-btn">
+                                            <a href="{% url 'remove_player' team.pk player.pk %}" class="btn btn-sm btn-error">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -216,7 +220,7 @@
                         <div class="p-4 border-b border-base-content/10 flex justify-between items-center">
                             <h2 class="card-title">Турниры</h2>
                             {% if is_captain %}
-                                <a href="{% url 'tournament_list' %}" class="btn btn-sm find-btn">
+                                <a href="{% url 'tournament_list' %}" class="btn btn-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
