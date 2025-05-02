@@ -1,0 +1,73 @@
+{% extends 'tournaments/base.html' %}
+{% load static %}
+
+{% block title %}{{ news.title }} - CS2 Турниры{% endblock %}
+
+{% block content %}
+<div class="card bg-base-200 shadow-xl mb-8">
+  <div class="card-body">
+      <div class="flex flex-col sm:flex-row justify-between items-start gap-2">
+          <h1 class="card-title text-3xl mb-2">{{ news.title }}</h1>
+          {% if user.is_staff %}
+          <div class="flex flex-wrap gap-2">
+              <a href="{% url 'news_update' news.pk %}" class="btn btn-outline btn-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Редактировать
+              </a>
+              <a href="{% url 'news_delete' news.pk %}" class="btn btn-error btn-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  Удалить
+              </a>
+          </div>
+          {% endif %}
+      </div>
+      
+      <p class="text-sm text-gray-500 mb-4">
+          {{ news.created_at|date:"d.m.Y H:i" }}
+          {% if news.created_at != news.updated_at %}
+              (обновлено {{ news.updated_at|date:"d.m.Y H:i" }})
+          {% endif %}
+      </p>
+      
+      {% if news.image %}
+          <figure class="mb-6">
+              <img src="{{ news.image.url }}" alt="{{ news.title }}" class="rounded-lg max-h-96 w-auto mx-auto">
+          </figure>
+      {% else %}
+          <figure class="mb-6">
+              <img src="{% static 'img/default-news.jpg' %}" alt="{{ news.title }}" class="rounded-lg max-h-96 w-auto mx-auto">
+          </figure>
+      {% endif %}
+      
+      <div class="prose max-w-none">
+          {{ news.content|linebreaks }}
+      </div>
+      
+      <div class="card-actions justify-between mt-6 flex-wrap">
+          <a href="{% url 'news_list' %}" class="btn btn-outline">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Назад к новостям
+          </a>
+          
+          {% if news.source_url %}
+          <a href="{{ news.source_url }}" target="_blank" class="btn btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Читать оригинал
+          </a>
+          {% endif %}
+      </div>
+  </div>
+</div>
+{% endblock %}

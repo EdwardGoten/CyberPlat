@@ -135,29 +135,66 @@ class TeamDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         team = self.get_object()
         
+        # Добавляем подробные отладочные сообщения
+        print(f"\n\n==== ОТЛАДКА КОМАНДЫ ====")
+        print(f"Загрузка команды: {team.name} (ID: {team.pk})")
+        print(f"Дата создания: {team.created_at}")
+        print(f"Капитан команды: {team.captain.nickname if team.captain else 'Не назначен'}")
+        print(f"Количество игроков: {team.players.count()}")
+        
         # Проверяем, является ли текущий пользователь капитаном команды
         is_captain = False
         if self.request.user.is_authenticated:
             try:
                 is_captain = team.captain == self.request.user.player
-            except:
-                pass
+                print(f"Текущий пользователь капитан: {is_captain}")
+            except Exception as e:
+                print(f"Ошибка при проверке капитана: {str(e)}")
         
         context['is_captain'] = is_captain
         
-        # Получаем основных и запасных игроков
-        context['main_players'] = team.players.all()
-        context['substitute_players'] = []
+        # Разделяем игроков на основных и запасных с подробной отладкой
+        all_players = list(team.players.all())
+        print(f"Всего игроков получено из БД: {len(all_players)}")
         
-        # Получаем турниры, в которых участвует команда, и убеждаемся, что у них есть идентификаторы
-        team_tournaments = []
-        for tournament in team.tournaments.all():
-            if tournament.pk is not None:
-                team_tournaments.append(tournament)
+        main_players = []
+        substitute_players = []
+        
+        for player in all_players:
+            print(f"Обработка игрока: {player.nickname} (ID: {player.pk})")
+            print(f"  Роль игрока: '{player.role}'")
+            
+            if player.role == 'substitute':
+                print(f"  -> Добавлен в запасные игроки")
+                substitute_players.append(player)
+            else:
+                print(f"  -> Добавлен в основные игроки")
+                main_players.append(player)
+        
+        print(f"Основных игроков: {len(main_players)}")
+        print(f"Запасных игроков: {len(substitute_players)}")
+        
+        context['main_players'] = main_players
+        context['substitute_players'] = substitute_players
+        
+        # Получаем турниры, в которых участвует команда
+        team_tournaments = list(team.tournaments.all())
+        print(f"Турниров команды: {len(team_tournaments)}")
         
         context['team_tournaments'] = team_tournaments
+        print("==== КОНЕЦ ОТЛАДКИ ====\n\n")
         
         return context
+
+    def get_object(self, queryset=None):
+        """Переопределяем метод get_object для отладки"""
+        obj = super().get_object(queryset)
+        print(f"\n\n==== ОТЛАДКА get_object в TeamDetailView ====")
+        print(f"Запрошенный URL: {self.request.path}")
+        print(f"Параметры URL: {self.kwargs}")
+        print(f"Полученный объект: {obj} (тип: {type(obj).__name__}, ID: {obj.pk})")
+        print("==== КОНЕЦ ОТЛАДКИ get_object ====\n\n")
+        return obj
 
 class TeamCreateView(LoginRequiredMixin, CreateView):
     model = Team
@@ -239,7 +276,7 @@ def remove_player(request, team_id, player_id):
     
     # Нельзя удалить капитана
     if player == team.captain:
-        messages.error(request, 'Нельзя удалить капитана команды. Сначала передайте капитанство другому игроку.')
+        messages.error(request, 'Нельзя удалить капитана команды. Сначала передайте капитанство другому игрока.')
         return redirect('team_detail', pk=team.pk)
     
     # Удаляем игрока из команды
@@ -341,6 +378,25 @@ class TournamentDetailView(DetailView):
     model = Tournament
     template_name = 'tournaments/tournament_detail.html'
     
+    def dispatch(self, request, *args, **kwargs):
+        """Переопределяем метод dispatch для отладки"""
+        print(f"\n\n==== ОТЛАДКА dispatch в TournamentDetailView ====")
+        print(f"Запрошенный URL: {request.path}")
+        print(f"Параметры URL: {kwargs}")
+        print(f"HTTP метод: {request.method}")
+        print("==== КОНЕЦ ОТЛАДКИ dispatch ====\n\n")
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_object(self, queryset=None):
+        """Переопределяем метод get_object для отладки"""
+        obj = super().get_object(queryset)
+        print(f"\n\n==== ОТЛАДКА get_object в TournamentDetailView ====")
+        print(f"Запрошенный URL: {self.request.path}")
+        print(f"Параметры URL: {self.kwargs}")
+        print(f"Полученный объект: {obj} (тип: {type(obj).__name__}, ID: {obj.pk})")
+        print("==== КОНЕЦ ОТЛАДКИ get_object ====\n\n")
+        return obj
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tournament = self.get_object()
@@ -367,6 +423,26 @@ class TournamentCreateView(LoginRequiredMixin, CreateView):
     model = Tournament
     form_class = TournamentForm
     template_name = 'tournaments/tournament_form.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Проверяем, является ли пользователь администратором
+        if not request.user.is_staff:
+            messages.error(request, 'У вас нет прав для создания турниров.')
+            return redirect('tournament_list')
+        return super().dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        # Добавляем отладочное сообщение
+        messages.info(self.request, 'Форма валидна, пытаемся создать турнир...')
+        
+        # Сохраняем турнир
+        self.object = form.save()
+        messages.success(self.request, f'Турнир {self.object.name} успешно создан!')
+        
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('tournament_detail', kwargs={'pk': self.object.pk})
 
 @login_required
 def tournament_join(request, tournament_id):
@@ -476,15 +552,54 @@ class NewsListView(ListView):
     template_name = 'tournaments/news_list.html'
     context_object_name = 'news_list'
     ordering = ['-created_at']
+    paginate_by = 10  # Добавляем пагинацию
 
 class NewsDetailView(DetailView):
     model = News
     template_name = 'tournaments/news_detail.html'
 
-class NewsCreateView(LoginRequiredMixin, CreateView):
+class NewsCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = News
     form_class = NewsForm
     template_name = 'tournaments/news_form.html'
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Новость успешно создана!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('news_detail', kwargs={'pk': self.object.pk})
+
+class NewsUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = News
+    form_class = NewsForm
+    template_name = 'tournaments/news_form.html'
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Новость успешно обновлена!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('news_detail', kwargs={'pk': self.object.pk})
+
+class NewsDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = News
+    template_name = 'tournaments/news_confirm_delete.html'
+    success_url = reverse_lazy('news_list')
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Новость успешно удалена!')
+        return super().delete(request, *args, **kwargs)
 
 # Team invitation views
 @login_required
@@ -746,7 +861,7 @@ def complete_tournament_view(request, tournament_id):
                 tournament.winner = winner
                 messages.success(request, f'Установлен победитель турнира: {winner.name}')
             else:
-                messages.warning(request, 'Финальный матч завершен, но победитель не определен.')
+                messages.warning(request, 'Финальный матч не определен, победитель не установлен.')
         
         # Проверяем, все ли матчи завершены
         all_matches = Match.objects.filter(tournament=tournament)
